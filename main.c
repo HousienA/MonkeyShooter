@@ -1,76 +1,87 @@
-#include <windows.h>
+#include <stdio.h>
+#include <SDL2/SDL.h>
 
-const char g_szClassName[] = "myWindowClass";
+#include "./constants.h"
 
-// Step 4: the Window Procedure
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    switch(msg)
-    {
-        case WM_CLOSE:
-            DestroyWindow(hwnd);
-        break;
-        case WM_DESTROY:
-            PostQuitMessage(0);
-        break;
-        default:
-            return DefWindowProc(hwnd, msg, wParam, lParam);
+int game_running = FALSE;
+SDL_Window* window = NULL;
+SDL_Renderer* renderer = NULL;
+
+
+int initializeWindow(void){
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
+        fprintf(stderr, "Error initializing SDL.\n");
+        return FALSE;
     }
-    return 0;
+    window = SDL_CreateWindow(
+        "MonkeyShooter", 
+        SDL_WINDOWPOS_CENTERED, // x värdet (put in the center with sdl)
+        SDL_WINDOWPOS_CENTERED, // y värdet
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT,
+        SDL_WINDOW_BORDERLESS
+        );
+        if(!window){
+            fprintf(stderr, "Error creating SDL window.\n");
+            return FALSE;
+        }
+        renderer = SDL_CreateRenderer(window, -1, 0);
+        if(!renderer){
+            fprintf(stderr, "Error creating SDL renderer.\n");
+            return FALSE;
+        }
+
+    return TRUE;
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-    LPSTR lpCmdLine, int nCmdShow)
-{
-    WNDCLASSEX wc;
-    HWND hwnd;
-    MSG Msg;
+void process_input(){
+    SDL_Event event;
+    SDL_PollEvent(&event);
 
-    //Step 1: Registering the Window Class
-    wc.cbSize        = sizeof(WNDCLASSEX);
-    wc.style         = 0;
-    wc.lpfnWndProc   = WndProc;
-    wc.cbClsExtra    = 0;
-    wc.cbWndExtra    = 0;
-    wc.hInstance     = hInstance;
-    wc.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
-    wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-    wc.lpszMenuName  = NULL;
-    wc.lpszClassName = g_szClassName;
-    wc.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
+    switch(event.type){
+        case SDL_QUIT:
+            game_running = FALSE;
+            break;
+        case SDL_KEYDOWN:
+            if(event.key.keysym.sym == SDLK_ESCAPE){
+                game_running = FALSE;
+            }
+            break;
 
-    if(!RegisterClassEx(&wc))
-    {
-        MessageBox(NULL, "Window Registration Failed!", "Error!",
-            MB_ICONEXCLAMATION | MB_OK);
-        return 0;
     }
 
-    // Step 2: Creating the Window
-    hwnd = CreateWindowEx(
-        WS_EX_CLIENTEDGE,
-        g_szClassName,
-        "MonkeyApes", // namn på window
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 544, 375, // here is where the size of the window is adjusted when popping up. (storleken)
-        NULL, NULL, hInstance, NULL); // här är bilden på sidan av, när window pop up
+}
 
-    if(hwnd == NULL)
-    {
-        MessageBox(NULL, "Window Creation Failed!", "Error!",
-            MB_ICONEXCLAMATION | MB_OK);
-        return 0;
+void update(){
+    // Att göra 
+
+}
+
+void render(){
+    // Att göra 
+
+}
+
+void destroy_window(){
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+}
+
+
+int main(){
+
+    game_running = initializeWindow();
+
+    //setup();
+
+    while(game_running){
+        process_input();
+        update();
+        render();
     }
 
-    ShowWindow(hwnd, nCmdShow);
-    UpdateWindow(hwnd);
+    destroy_window();
 
-    // Step 3: The Message Loop
-    while(GetMessage(&Msg, NULL, 0, 0) > 0)
-    {
-        TranslateMessage(&Msg);
-        DispatchMessage(&Msg);
-    }
-    return Msg.wParam;
+    return 0;
 }
