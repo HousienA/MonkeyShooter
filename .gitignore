@@ -1,4 +1,6 @@
 .vscode
+*.vscode
+*.json
 *.code-workspace
 .DS_Store
 *.exe
