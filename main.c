@@ -69,7 +69,7 @@ void destroy_window(){
 }
 
 
-int main(){
+int main(int argc, char *argv[]){
 
     game_running = initializeWindow();
 
