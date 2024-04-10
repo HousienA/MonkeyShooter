@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
-#include "./constants.h"
+#include "../include/constants.h"
 
 int game_running = FALSE;
 SDL_Window* window = NULL;
