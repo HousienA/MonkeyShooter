@@ -58,7 +58,13 @@ void update(){
 }
 
 void render(){
-    // Att göra 
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+
+    //ATT GÖRA: här kan vi börja med grafiken till spelet 
+
+    SDL_RenderPresent(renderer); //render swap, makes game easier to appear in window
+
 
 }
 
