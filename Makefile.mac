@@ -1,0 +1,28 @@
+# Makefile for macOS
+
+# Location of game.c
+SRCDIR=./src
+
+# Name of the compiler
+CC=gcc
+
+# Any include directories
+INCLUDE = -I/usr/local/include
+
+# Any flags for the compiler
+CFLAGS = -g -c $(INCLUDE)
+
+# Any libraries to link with
+LIBS = -L/usr/local/lib
+
+# Extra flags to give to compilers when they are supposed to invoke the linker
+LDFLAGS = -lSDL2main -lSDL2_image -lSDL2 -framework OpenGL
+
+game:
+	@echo "Building Game"
+	$(CC) $(CFLAGS) $(SRCDIR)/game.c -o $@.o 
+	$(CC) $@.o -o $@ $(LIBS) $(LDFLAGS)
+
+clean:
+	rm -f game
+	rm -f game.o
