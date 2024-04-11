@@ -13,6 +13,8 @@ int main(int argc, char *argv[]){
     // initialize SDL
   SDL_Init(SDL_INIT_VIDEO);
 
+
+
   SDL_Window *window = SDL_CreateWindow("MonkeyShooter", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, PLAYER_WIDTH, PLAYER_HEIGHT, SDL_WINDOW_OPENGL);
 
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -31,6 +33,20 @@ int main(int argc, char *argv[]){
   texture_destination.w = 250;
   texture_destination.h = 250;
 
+  //Source Rectangle to cover image
+  SDL_Rect scrR;
+  scrR.x = 0;
+  scrR.y = 0;
+  scrR.w = PLAYER_WIDTH;
+  scrR.h = PLAYER_HEIGHT;
+
+  //Destination Rectangle: on screen
+  SDL_Rect destR;
+  destR.x = 100;
+  destR.y = 50;
+  destR.w = 64; //SIZE OF BOX
+  destR.h = 64; //SIZE OF BOX ! CHANGE IF NEEDED
+
 
 
   int running = TRUE;
@@ -39,6 +55,21 @@ int main(int argc, char *argv[]){
     while(SDL_PollEvent(&event)){
         if(event.type == SDL_QUIT){
             running = FALSE;
+        }else if(event.type == SDL_KEYDOWN){
+            switch(event.key.keysym.sym){
+                case SDLK_UP:
+                    destR.y = destR.y - MOVE_SPEED;
+                    break;
+                case SDLK_DOWN:
+                    destR.y = destR.y + MOVE_SPEED;
+                    break;
+                case SDLK_LEFT:
+                    destR.x = destR.x - MOVE_SPEED;
+                    break;
+                case SDLK_RIGHT:
+                    destR.x = destR.x + MOVE_SPEED;
+                    break;
+            }
         }
     }
 
@@ -46,7 +77,7 @@ int main(int argc, char *argv[]){
     SDL_RenderClear(renderer);
 
     //draw
-    SDL_RenderCopy(renderer, image_texture, NULL, &texture_destination);
+    SDL_RenderCopy(renderer, image_texture, NULL, &destR);
 
 
     // show what was drawn
