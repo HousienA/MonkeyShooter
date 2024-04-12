@@ -29,47 +29,15 @@ struct ctx{
 
 typedef struct ctx CTX;
 
-int main(int argc, char *argv[])
+void movement()
 {
-
     CTX ctx;
-    // initialize SDL
-    SDL_Init(SDL_INIT_VIDEO);
-
-    ctx.window = SDL_CreateWindow("MonkeyShooter",
-                                          SDL_WINDOWPOS_CENTERED,
-                                          SDL_WINDOWPOS_CENTERED,
-                                          WINDOW_WIDTH,
-                                          WINDOW_HEIGHT,
-                                          SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-
-    ctx.renderer = SDL_CreateRenderer(ctx.window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-
-    IMG_Init(IMG_INIT_PNG | IMG_INIT_PNG);
-
-    // LOad image file
-    SDL_Surface *image = IMG_Load("resources/character.png");
-    ctx.player.tex = SDL_CreateTextureFromSurface(ctx.renderer, image);
-    SDL_FreeSurface(image);
-
-    // Define where on the screen we want the character
-    ctx.player.dest.x = 100;
-    ctx.player.dest.y = 50;
-    ctx.player.dest.w = 64;
-    ctx.player.dest.h = 64;
-
-    // Source Rectangle to cover image
-    ctx.player.source.x = 0;
-    ctx.player.source.y = 0;
-    ctx.player.source.w = PLAYER_WIDTH;
-    ctx.player.source.h = PLAYER_HEIGHT;
 
     int running = TRUE;
     SDL_Event event;
     const Uint8 *state;
     while (running) {
         state = SDL_GetKeyboardState(NULL);
-
         ctx.moving_left = state[SDL_SCANCODE_A] > 0;
         ctx.moving_right = state[SDL_SCANCODE_D] > 0;
         ctx.moving_up = state[SDL_SCANCODE_W] > 0;
@@ -103,12 +71,4 @@ int main(int argc, char *argv[])
         SDL_RenderPresent(ctx.renderer);
     }
 
-    // Release resources
-    SDL_DestroyTexture(ctx.player.tex);
-    IMG_Quit();
-    SDL_DestroyRenderer(ctx.renderer);
-    SDL_DestroyWindow(ctx.window);
-    SDL_Quit();
-
-    return 0;
 }
