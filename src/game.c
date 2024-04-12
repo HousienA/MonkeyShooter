@@ -21,6 +21,7 @@ struct ctx{
     SDL_Renderer *renderer;
 
     Entity player;
+    Entity background;
     bool moving_left;
     bool moving_right;
     bool moving_up;
@@ -64,6 +65,18 @@ int main(int argc, char *argv[])
     ctx.player.source.w = PLAYER_WIDTH;
     ctx.player.source.h = PLAYER_HEIGHT;
 
+    // Load background image file
+    SDL_Surface *background_image = IMG_Load("resources/PrototypeMap.MS2.png");
+    ctx.background.tex = SDL_CreateTextureFromSurface(ctx.renderer, background_image);
+    SDL_FreeSurface(background_image);
+
+    // Define where on the screen we want the background
+    ctx.background.dest.x = 0;
+    ctx.background.dest.y = 0;
+    ctx.background.dest.w = WINDOW_WIDTH;
+    ctx.background.dest.h = WINDOW_HEIGHT;
+
+
     int running = TRUE;
     SDL_Event event;
     const Uint8 *state;
@@ -99,12 +112,15 @@ int main(int argc, char *argv[])
 
 
         SDL_RenderClear(ctx.renderer);
+        SDL_RenderCopy(ctx.renderer, ctx.background.tex, NULL, &ctx.background.dest);
         SDL_RenderCopy(ctx.renderer, ctx.player.tex, &ctx.player.source, &ctx.player.dest);
+
         SDL_RenderPresent(ctx.renderer);
     }
 
     // Release resources
     SDL_DestroyTexture(ctx.player.tex);
+    SDL_DestroyTexture(ctx.background.tex);
     IMG_Quit();
     SDL_DestroyRenderer(ctx.renderer);
     SDL_DestroyWindow(ctx.window);
