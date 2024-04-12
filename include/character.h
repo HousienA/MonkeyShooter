@@ -21,6 +21,6 @@ void turnLeft(Character *pCharacter);
 void turnRight(Character *pCharacter);
 void turnUpp(Character *pCharacter);
 void turnDown(Character *pCharacter);
-void destroyCharachter(Character *pCharacter);
+void destroyCharacter(Character *pCharacter);
 
 #endif 

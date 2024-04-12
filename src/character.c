@@ -52,7 +52,7 @@ void turnDown(Character *pCharacter)
     pCharacter->dest.y += MOVE_SPEED;
 }
 
-void destroyCharachter(Character *pCharacter)
+void destroyCharacter(Character *pCharacter)
 {
     SDL_DestroyTexture(pCharacter->tex);
     free(pCharacter);

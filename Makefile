@@ -11,5 +11,5 @@ character.o: ./src/character.c
 	gcc -c -I$(INCLUDE) ./src/character.c
 
 clean:
-	rm .o
-	rm game.exe
+	rm *.o
+	rm *.exe
