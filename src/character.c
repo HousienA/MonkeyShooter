@@ -1,74 +1,59 @@
-#include <stdio.h>
+#include "../include/character.h"
 #include <stdlib.h>
-#include <stdbool.h>
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-
 #include "../include/game.h"
 #include "../include/constants.h"
 
-struct entity{
-    SDL_Texture *tex;
-    SDL_Rect source;
-    SDL_Rect dest;
-};
-
-typedef struct entity Entity;
-
-struct ctx{
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-
-    Entity player;
-    bool moving_left;
-    bool moving_right;
-    bool moving_up;
-    bool moving_down;
-};
-
-typedef struct ctx CTX;
-
-void movement()
+Character *createCharacter(SDL_Renderer *renderer)
 {
-    CTX ctx;
-
-    int running = TRUE;
-    SDL_Event event;
-    const Uint8 *state;
-    while (running) {
-        state = SDL_GetKeyboardState(NULL);
-        ctx.moving_left = state[SDL_SCANCODE_A] > 0;
-        ctx.moving_right = state[SDL_SCANCODE_D] > 0;
-        ctx.moving_up = state[SDL_SCANCODE_W] > 0;
-        ctx.moving_down = state[SDL_SCANCODE_S] > 0;
-
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = FALSE;
-            }
-        }
-
-        if (ctx.moving_left && ctx.player.dest.x > 0) {
-            ctx.player.dest.x -= MOVE_SPEED;
-        }
-
-        if (ctx.moving_right && ctx.player.dest.x + ctx.player.dest.w < WINDOW_WIDTH) {
-            ctx.player.dest.x += MOVE_SPEED;
-        }
-
-        if (ctx.moving_up && ctx.player.dest.y > 0) {
-            ctx.player.dest.y -= MOVE_SPEED;
-        }
-
-        if (ctx.moving_down && ctx.player.dest.y + ctx.player.dest.h < WINDOW_HEIGHT) {
-            ctx.player.dest.y += MOVE_SPEED;
-        }
+    Character *pCharacter = malloc(sizeof(Character));
 
 
-        SDL_RenderClear(ctx.renderer);
-        SDL_RenderCopy(ctx.renderer, ctx.player.tex, &ctx.player.source, &ctx.player.dest);
-        SDL_RenderPresent(ctx.renderer);
-    }
+    pCharacter->moving_left = false;
+    pCharacter->moving_right = false;
+    pCharacter->moving_up = false;
+    pCharacter->moving_down = false;
+    pCharacter->dest.x = 100;
+    pCharacter->dest.y = 50;
+    pCharacter->dest.w = 64;
+    pCharacter->dest.h = 64;
 
+    IMG_Init(IMG_INIT_PNG | IMG_INIT_PNG);
+    SDL_Surface *image = IMG_Load("resources/character.png");
+
+
+    pCharacter->tex = SDL_CreateTextureFromSurface(renderer, image);
+    SDL_FreeSurface(image);
+
+    pCharacter->source.x = 0;
+    pCharacter->source.y = 0;
+    pCharacter->source.w = PLAYER_WIDTH;
+    pCharacter->source.h = PLAYER_HEIGHT;
+
+    return pCharacter;
+}
+
+void turnLeft(Character *pCharacter)
+{
+    pCharacter->dest.x -= MOVE_SPEED;
+}
+
+void turnRight(Character *pCharacter)
+{
+    pCharacter->dest.x += MOVE_SPEED;
+}
+
+void turnUpp(Character *pCharacter)
+{
+    pCharacter->dest.y -= MOVE_SPEED;
+}
+
+void turnDown(Character *pCharacter)
+{
+    pCharacter->dest.y += MOVE_SPEED;
+}
+
+void destroyCharachter(Character *pCharacter)
+{
+    SDL_DestroyTexture(pCharacter->tex);
+    free(pCharacter);
 }
