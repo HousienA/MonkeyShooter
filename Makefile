@@ -1,6 +1,6 @@
 # Makefile for Windows
 
-# Location of game.c
+# Location of main.c
 SRCDIR=./src
 
 # Name of the compiler
@@ -20,11 +20,11 @@ CFLAGS = -g -c
 # Extra flags to give to compilers when they are supposed to invoke the linker
 LDFLAGS = -lmingw32 -lSDL2main -lSDL2_image -lSDL2 -mwindows -lm
 
-game:
-	@echo "Building Game"
-	$(CC) $(CFLAGS) $(SRCDIR)/game.c -o $@.o 
-	$(CC) game.o -o game $(LDFLAGS)
+main:
+	@echo "Building main"
+	$(CC) $(CFLAGS) $(SRCDIR)/main.c -o $@.o 
+	$(CC) main.o -o main $(LDFLAGS)
 
 clean:
-	rm game
-	rm game.o
+	rm main
+	rm main.o
