@@ -8,5 +8,5 @@
 #define TRUE 1
 #define FALSE 0
 
-#define MOVE_SPEED 3
+#define MOVE_SPEED 1
 

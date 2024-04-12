@@ -9,11 +9,12 @@
 #include "../include/constants.h"
 #include "../include/character.h"
 
-
 struct ctx{
     SDL_Window *window;
     SDL_Renderer *renderer;
     Character *pCharacter;
+    SDL_Texture *background;
+    SDL_Rect background_rect;
 };
 
 typedef struct ctx CTX;
@@ -30,8 +31,14 @@ int main(int argc, char *argv[])
                                           SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
+    // Load the background image
+    SDL_Texture *background = IMG_LoadTexture(renderer, "resources/PrototypeMap.MS2.png");
+
     // Create a new character
     Character *pCharacter = createCharacter(renderer);
+
+    // Set the position and size of the background image
+    SDL_Rect background_rect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
 
     // Main game loop
     int running = TRUE;
@@ -65,6 +72,9 @@ int main(int argc, char *argv[])
         // Clear the renderer
         SDL_RenderClear(renderer);
 
+        // Draw the background image on the screen
+        SDL_RenderCopy(renderer, background, NULL, &background_rect);
+
         // Draw the character on the screen
         SDL_RenderCopyEx(renderer, pCharacter->tex, &pCharacter->source, &pCharacter->dest, 0, NULL, SDL_FLIP_NONE);
 
@@ -81,6 +91,7 @@ int main(int argc, char *argv[])
 
     // Clean up resources
     SDL_DestroyTexture(pCharacter->tex);
+    SDL_DestroyTexture(background);
     IMG_Quit();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
