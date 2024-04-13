@@ -1,7 +1,7 @@
 #include "../include/character.h"
 #include <stdlib.h>
 #include "../include/game.h"
-#include "../include/constants.h"
+
 
 Character *createCharacter(SDL_Renderer *renderer)
 {

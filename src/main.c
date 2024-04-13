@@ -6,7 +6,6 @@
 #include <SDL2/SDL_image.h>
 
 #include "../include/game.h"
-#include "../include/constants.h"
 #include "../include/character.h"
 
 int game_running = FALSE;
