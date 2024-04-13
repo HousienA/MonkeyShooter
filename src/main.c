@@ -26,7 +26,7 @@ struct game{
     GameState state;
 }; typedef struct game Game;
 
-int intializeWindow(Game *pGame, SDL_Renderer *renderer);
+int intializeWindow(Game *pGame); //removed renderer argument
 void process_input(Game *pGame,SDL_Event *pEvent);
 void run(Game *pGame);
 void close(Game *pGame);
@@ -34,7 +34,7 @@ void close(Game *pGame);
 
 int main(int argv, char** args){
     Game g={0};
-    if (!intializeWindow(&g, g.pRenderer)) return TRUE;      // if initializeWindow doesn't work end the program
+    if (!intializeWindow(&g)) return TRUE;      // if initializeWindow doesn't work end the program
     run(&g);            //or run and then close it after quitting
     close(&g);
 
@@ -42,81 +42,97 @@ int main(int argv, char** args){
 }
 
 //start the program and call needed from main struct
-int intializeWindow(Game *pGame, SDL_Renderer *renderer){
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
-        printf("Error: %s\n",SDL_GetError());
+int intializeWindow(Game *pGame) {
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+        printf("Error: %s\n", SDL_GetError());
         return FALSE;
     }
+
     pGame->pWindow = SDL_CreateWindow(
-        "MonkeyShooter", 
-        SDL_WINDOWPOS_CENTERED, // x värdet (put in the center with sdl)
-        SDL_WINDOWPOS_CENTERED, // y värdet
+        "MonkeyShooter",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
         WINDOW_WIDTH,
         WINDOW_HEIGHT,
-        SDL_WINDOW_RESIZABLE
-        );
-        if(!pGame->pWindow){
-            printf("Error: %s\n",SDL_GetError());
-            close(pGame);
-            return FALSE;
-        }
-        pGame->pRenderer = SDL_CreateRenderer(pGame->pWindow, -1, 0);
-        if(!pGame->pRenderer){
-            printf("Error: %s\n",SDL_GetError());
-            return FALSE;
-        }
+        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+    );
 
-        // Load the background image
-        SDL_Texture *background = IMG_LoadTexture(renderer, "resources/PrototypeMap.MS2.png");
+    if (!pGame->pWindow) {
+        printf("Error creating window: %s\n", SDL_GetError());
+        close(pGame);
+        return FALSE;
+    }
 
-        // Load the menu image
-        SDL_Texture *menuTexture = IMG_LoadTexture(renderer, "resources/mMenu.png");
+    pGame->pRenderer = SDL_CreateRenderer(pGame->pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!pGame->pRenderer) {
+        printf("Error creating renderer: %s\n", SDL_GetError());
+        return FALSE;
+    }
 
-        pGame->pCharacter = createCharacter(pGame->pRenderer);
+    // Load the background image with error if it doens't work
+    pGame->background = IMG_LoadTexture(pGame->pRenderer, "resources/PrototypeMap.MS2.png");
+    if (!pGame->background) {
+        printf("Error loading background image: %s\n", IMG_GetError());
+        return FALSE;
+    }
 
-        if (!pGame->pCharacter)
-        {
-            printf("Error: %s\n", SDL_GetError());
-            close(pGame);
-            return FALSE;
-        }
+    // Load the menu image with error if it doens't work
+    pGame->menuTexture = IMG_LoadTexture(pGame->pRenderer, "resources/mMenu.png");
+    if (!pGame->menuTexture) {
+        printf("Error loading menu image: %s\n", IMG_GetError());
+        return FALSE;
+    }
 
-        // Set the position and size of the background image
-        pGame->background_rect = (SDL_Rect){0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+    pGame->pCharacter = createCharacter(pGame->pRenderer);
 
-        // Set the position and size of the menu image
-        pGame->menu_rect = (SDL_Rect){0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+    if (!pGame->pCharacter) {
+        printf("Error: %s\n", SDL_GetError());
+        close(pGame);
+        return FALSE;
+    }
 
-        pGame->state = MENU; // osäker om denna ska finnas här
+    // Set the position and size of the background image
+    pGame->background_rect = (SDL_Rect){0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
 
-        return TRUE;
+    // Set the position and size of the menu image
+    pGame->menu_rect = (SDL_Rect){0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+
+    pGame->state = MENU;
+
+    return TRUE;
 }
+
 
 //input to process movement, can move diagonal 
-void process_input(Game *pGame,SDL_Event *pEvent){
+void process_input(Game *pGame, SDL_Event *pEvent) {
     const Uint8 *state = SDL_GetKeyboardState(NULL);
-        if (state[SDL_SCANCODE_ESCAPE])
-        {
-            game_running = FALSE;
-        }
-            if (state[SDL_SCANCODE_UP])
-        {
-            turnUpp(pGame->pCharacter);
-        }
-        if (state[SDL_SCANCODE_DOWN])
-        {
-            turnDown(pGame->pCharacter);
-        }
-        if (state[SDL_SCANCODE_LEFT])
-        {
-            turnLeft(pGame->pCharacter);
-        }
-        if (state[SDL_SCANCODE_RIGHT])
-        {
-            turnRight(pGame->pCharacter);
-        }
-
+    if (state[SDL_SCANCODE_ESCAPE]) {
+        game_running = FALSE;
+    }
+    //checks the state for which inputs are available in window
+    switch (pGame->state) {
+        case MENU:
+            if (state[SDL_SCANCODE_SPACE]) {
+                pGame->state = ONGOING;
+            }
+            break;
+        case ONGOING:
+            if (state[SDL_SCANCODE_UP]) {
+                turnUpp(pGame->pCharacter);
+            }
+            if (state[SDL_SCANCODE_DOWN]) {
+                turnDown(pGame->pCharacter);
+            }
+            if (state[SDL_SCANCODE_LEFT]) {
+                turnLeft(pGame->pCharacter);
+            }
+            if (state[SDL_SCANCODE_RIGHT]) {
+                turnRight(pGame->pCharacter);
+            }
+            break;
+    }
 }
+
 
 //function to run the game with events linked to the main struct
 void run(Game *pGame){
@@ -179,6 +195,8 @@ void run(Game *pGame){
 
 void close(Game *pGame){
     if(pGame->pCharacter) destroyCharacter(pGame->pCharacter);
+    if(pGame->background) SDL_DestroyTexture(pGame->background); // Free the background texture
+    if(pGame->menuTexture) SDL_DestroyTexture(pGame->menuTexture); // Free the menu texture
     if(pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
     if(pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
     SDL_Quit();
