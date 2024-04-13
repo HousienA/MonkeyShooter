@@ -7,124 +7,132 @@
 
 #include "../include/game.h"
 #include "../include/constants.h"
+#include "../include/character.h"
 
-struct entity{
-    SDL_Texture *tex;
-    SDL_Rect source;
-    SDL_Rect dest;
-};
-
-typedef struct entity Entity;
-
+enum GameState {MENU, ONGOING};
+typedef enum GameState GameState;       //decides the state of the window 
 struct ctx{
     SDL_Window *window;
     SDL_Renderer *renderer;
-
-    Entity player;
-    Entity background;
-    bool moving_left;
-    bool moving_right;
-    bool moving_up;
-    bool moving_down;
+    Character *pCharacter;
+    SDL_Texture *background;
+    SDL_Rect background_rect;
+    GameState state;            //include the state in the main struct
 };
 
 typedef struct ctx CTX;
 
 int main(int argc, char *argv[])
 {
-
-    CTX ctx;
-    // initialize SDL
+    // Initialize SDL and create a window and renderer
     SDL_Init(SDL_INIT_VIDEO);
-
-    ctx.window = SDL_CreateWindow("MonkeyShooter",
+    SDL_Window *window = SDL_CreateWindow("MonkeyShooter",
                                           SDL_WINDOWPOS_CENTERED,
                                           SDL_WINDOWPOS_CENTERED,
                                           WINDOW_WIDTH,
                                           WINDOW_HEIGHT,
                                           SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-    ctx.renderer = SDL_CreateRenderer(ctx.window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    // Load the background image
+    SDL_Texture *background = IMG_LoadTexture(renderer, "resources/PrototypeMap.MS2.png");
 
-    IMG_Init(IMG_INIT_PNG | IMG_INIT_PNG);
+    // Load the menu image
+    SDL_Texture *menuTexture = IMG_LoadTexture(renderer, "resources/mMenu.png");
 
-    // LOad image file
-    SDL_Surface *image = IMG_Load("resources/character.png");
-    ctx.player.tex = SDL_CreateTextureFromSurface(ctx.renderer, image);
-    SDL_FreeSurface(image);
+    // Create a new character
+    Character *pCharacter = createCharacter(renderer);
 
-    // Define where on the screen we want the character
-    ctx.player.dest.x = 100;
-    ctx.player.dest.y = 50;
-    ctx.player.dest.w = 64;
-    ctx.player.dest.h = 64;
+    // Set the position and size of the background image
+    SDL_Rect background_rect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
 
-    // Source Rectangle to cover image
-    ctx.player.source.x = 0;
-    ctx.player.source.y = 0;
-    ctx.player.source.w = PLAYER_WIDTH;
-    ctx.player.source.h = PLAYER_HEIGHT;
+    // Set the position and size of the menu image
+    SDL_Rect menu_rect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
 
-    // Load background image file
-    SDL_Surface *background_image = IMG_Load("resources/PrototypeMap.MS2.png");
-    ctx.background.tex = SDL_CreateTextureFromSurface(ctx.renderer, background_image);
-    SDL_FreeSurface(background_image);
+    // Initialize game state so that it starts on menu
+    GameState gameState = MENU;     
 
-    // Define where on the screen we want the background
-    ctx.background.dest.x = 0;
-    ctx.background.dest.y = 0;
-    ctx.background.dest.w = WINDOW_WIDTH;
-    ctx.background.dest.h = WINDOW_HEIGHT;
-
-
+    // Main game loop
     int running = TRUE;
     SDL_Event event;
     const Uint8 *state;
     while (running) {
         state = SDL_GetKeyboardState(NULL);
 
-        ctx.moving_left = state[SDL_SCANCODE_A] > 0;
-        ctx.moving_right = state[SDL_SCANCODE_D] > 0;
-        ctx.moving_up = state[SDL_SCANCODE_W] > 0;
-        ctx.moving_down = state[SDL_SCANCODE_S] > 0;
+        // Switch loop to handle the states 
+        switch (gameState) {
+            case MENU:
+            
+            SDL_RenderCopy(renderer, menuTexture, NULL, &menu_rect); // Render menu image if state is in menu
 
+            // Check for Space key press to go to game 
+            if (state[SDL_SCANCODE_SPACE]) {
+                gameState = ONGOING;
+            }
+            break;
+            case ONGOING:   //code for ingame inputs
+                // Update character position based on user input
+                pCharacter->moving_left = state[SDL_SCANCODE_A] > 0;
+                pCharacter->moving_right = state[SDL_SCANCODE_D] > 0;
+                pCharacter->moving_up = state[SDL_SCANCODE_W] > 0;
+                pCharacter->moving_down = state[SDL_SCANCODE_S] > 0;
+
+                if (state[SDL_SCANCODE_A]) {
+                    turnLeft(pCharacter);
+                }
+
+                if (state[SDL_SCANCODE_D] && pCharacter->dest.x + pCharacter->dest.w < WINDOW_WIDTH) {
+                    turnRight(pCharacter);
+                }
+
+                if (state[SDL_SCANCODE_W] && pCharacter->dest.y > 0) {
+                    turnUpp(pCharacter);
+                }
+
+                if (state[SDL_SCANCODE_S] && pCharacter->dest.y + pCharacter->dest.h < WINDOW_HEIGHT) {
+                    turnDown(pCharacter);
+                }
+
+                break;
+        }
+
+        // Clear the renderer
+        SDL_RenderClear(renderer);
+
+        // Check the game state
+        if (gameState == MENU) {
+            // Render the menu image
+            SDL_RenderCopy(renderer, menuTexture, NULL, &menu_rect);
+        }
+        else if (gameState == ONGOING) {
+            // Draw the background image on the screen
+            SDL_RenderCopy(renderer, background, NULL, &background_rect);
+
+            // Draw the character on the screen
+            SDL_RenderCopyEx(renderer, pCharacter->tex, &pCharacter->source, &pCharacter->dest, 0, NULL, SDL_FLIP_NONE);
+        }
+
+        // Update the screen
+        SDL_RenderPresent(renderer);
+
+        // Check for events
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = FALSE;
             }
         }
-
-        if (ctx.moving_left && ctx.player.dest.x > 0) {
-            ctx.player.dest.x -= MOVE_SPEED;
-        }
-
-        if (ctx.moving_right && ctx.player.dest.x + ctx.player.dest.w < WINDOW_WIDTH) {
-            ctx.player.dest.x += MOVE_SPEED;
-        }
-
-        if (ctx.moving_up && ctx.player.dest.y > 0) {
-            ctx.player.dest.y -= MOVE_SPEED;
-        }
-
-        if (ctx.moving_down && ctx.player.dest.y + ctx.player.dest.h < WINDOW_HEIGHT) {
-            ctx.player.dest.y += MOVE_SPEED;
-        }
-
-
-        SDL_RenderClear(ctx.renderer);
-        SDL_RenderCopy(ctx.renderer, ctx.background.tex, NULL, &ctx.background.dest);
-        SDL_RenderCopy(ctx.renderer, ctx.player.tex, &ctx.player.source, &ctx.player.dest);
-
-        SDL_RenderPresent(ctx.renderer);
     }
 
-    // Release resources
-    SDL_DestroyTexture(ctx.player.tex);
-    SDL_DestroyTexture(ctx.background.tex);
+    // Clean up resources
+    SDL_DestroyTexture(pCharacter->tex);
+    SDL_DestroyTexture(background);
+     SDL_DestroyTexture(menuTexture); // Destroy menu texture
     IMG_Quit();
-    SDL_DestroyRenderer(ctx.renderer);
-    SDL_DestroyWindow(ctx.window);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
     SDL_Quit();
+
+    destroyCharacter(pCharacter);
 
     return 0;
 }
