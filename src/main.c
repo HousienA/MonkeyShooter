@@ -1,20 +1,32 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+
+#include "../include/game.h"
 #include "../include/constants.h"
+#include "../include/character.h"
 
 int game_running = FALSE;
-SDL_Window* window = NULL;
-SDL_Renderer* renderer = NULL;
+
+enum GameState {MENU, ONGOING};
+typedef enum GameState GameState; 
 
 //main struct for game
 struct game{
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
-    //character struct called from character.h goes here *pCharacter;
-};
-typedef struct game Game;
+    Character *pCharacter;
+    SDL_Texture *background;
+    SDL_Texture *menuTexture;
+    SDL_Rect background_rect;
+    SDL_Rect menu_rect;
+    GameState state;
+}; typedef struct game Game;
 
-int intializeWindow(Game *pGame);
+int intializeWindow(Game *pGame, SDL_Renderer *renderer);
 void process_input(Game *pGame,SDL_Event *pEvent);
 void run(Game *pGame);
 void close(Game *pGame);
@@ -22,7 +34,7 @@ void close(Game *pGame);
 
 int main(int argv, char** args){
     Game g={0};
-    if(!intializeWindow(&g)) return 1;      // if initializeWindow doesn't work end the program
+    if (!intializeWindow(&g, g.pRenderer)) return TRUE;      // if initializeWindow doesn't work end the program
     run(&g);            //or run and then close it after quitting
     close(&g);
 
@@ -30,7 +42,7 @@ int main(int argv, char** args){
 }
 
 //start the program and call needed from main struct
-int intializeWindow(Game *pGame){
+int intializeWindow(Game *pGame, SDL_Renderer *renderer){
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
         printf("Error: %s\n",SDL_GetError());
         return FALSE;
@@ -53,13 +65,31 @@ int intializeWindow(Game *pGame){
             printf("Error: %s\n",SDL_GetError());
             return FALSE;
         }
-        /*pGame->pCharacter = createChracter()
-        if(!pGame->pCharacter){
-        printf("Error: %s\n",SDL_GetError());
-        close(pGame);
-        return 0;
-    }*/
-    return TRUE;
+
+        // Load the background image
+        SDL_Texture *background = IMG_LoadTexture(renderer, "resources/PrototypeMap.MS2.png");
+
+        // Load the menu image
+        SDL_Texture *menuTexture = IMG_LoadTexture(renderer, "resources/mMenu.png");
+
+        pGame->pCharacter = createCharacter(pGame->pRenderer);
+
+        if (!pGame->pCharacter)
+        {
+            printf("Error: %s\n", SDL_GetError());
+            close(pGame);
+            return FALSE;
+        }
+
+        // Set the position and size of the background image
+        pGame->background_rect = (SDL_Rect){0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+
+        // Set the position and size of the menu image
+        pGame->menu_rect = (SDL_Rect){0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+
+        pGame->state = MENU; // osäker om denna ska finnas här
+
+        return TRUE;
 }
 
 //input to process movement, can move diagonal 
@@ -71,19 +101,19 @@ void process_input(Game *pGame,SDL_Event *pEvent){
         }
             if (state[SDL_SCANCODE_UP])
         {
-            //function to move up
+            turnUpp(pGame->pCharacter);
         }
         if (state[SDL_SCANCODE_DOWN])
         {
-            //function to move down
+            turnDown(pGame->pCharacter);
         }
         if (state[SDL_SCANCODE_LEFT])
         {
-            //function to move left
+            turnLeft(pGame->pCharacter);
         }
         if (state[SDL_SCANCODE_RIGHT])
         {
-            //function to move
+            turnRight(pGame->pCharacter);
         }
 
 }
@@ -94,22 +124,61 @@ void run(Game *pGame){
     SDL_Event event;
     while(!close_requested){
         while(SDL_PollEvent(&event)){
-            if(event.type==SDL_QUIT) close_requested = 1;
+            if(event.type==SDL_QUIT) close_requested = TRUE;
             else process_input(pGame,&event);
         }
-        //updateChracter(pGame->pCharacter);
 
-        SDL_SetRenderDrawColor(pGame->pRenderer,0,0,0,255);
+        switch(pGame->state){
+            case MENU:
+                SDL_RenderCopy(pGame->pRenderer, pGame->menuTexture, NULL, &pGame->menu_rect); // Render menu image if state is in menu
+                break;
+            case ONGOING:
+                // Update character position based on user input
+                const Uint8 *state = SDL_GetKeyboardState(NULL);
+                pGame->pCharacter->moving_left = state[SDL_SCANCODE_A] > 0;
+                pGame->pCharacter->moving_right = state[SDL_SCANCODE_D] > 0;
+                pGame->pCharacter->moving_up = state[SDL_SCANCODE_W] > 0;
+                pGame->pCharacter->moving_down = state[SDL_SCANCODE_S] > 0;
+
+                if (state[SDL_SCANCODE_A]) {
+                    turnLeft(pGame->pCharacter);
+                }
+                if (state[SDL_SCANCODE_D] && pGame->pCharacter->dest.x + pGame->pCharacter->dest.w < WINDOW_WIDTH) {
+                    turnRight(pGame->pCharacter);
+                }
+                if (state[SDL_SCANCODE_W] && pGame->pCharacter->dest.y > 0) {
+                    turnUpp(pGame->pCharacter);
+                }
+                if (state[SDL_SCANCODE_S] && pGame->pCharacter->dest.y + pGame->pCharacter->dest.h < WINDOW_HEIGHT) {
+                    turnDown(pGame->pCharacter);
+                }
+                break;
+        }
+
+        // Clear the renderer
         SDL_RenderClear(pGame->pRenderer);
-        SDL_SetRenderDrawColor(pGame->pRenderer,230,230,230,255);
-        //drawCharacter(pGame->pCharacter);
+
+        // Check the game state
+        if (pGame->state == MENU) {
+            // Render the menu image
+            SDL_RenderCopy(pGame->pRenderer, pGame->menuTexture, NULL, &pGame->menu_rect);
+        }
+        else if (pGame->state == ONGOING) {
+            // Draw the background image on the screen
+            SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, &pGame->background_rect);
+            // Draw the character on the screen
+            SDL_RenderCopyEx(pGame->pRenderer, pGame->pCharacter->tex, &pGame->pCharacter->source, &pGame->pCharacter->dest, 0, NULL, SDL_FLIP_NONE);
+        }
+
+        // Update the screen
         SDL_RenderPresent(pGame->pRenderer);
+        // Delay to control frame rate
         SDL_Delay(1000/60-15);
     }
 }
 
 void close(Game *pGame){
-    //if(pGame->pCharacter) destroyCharacter(pGame->pCharacter);
+    if(pGame->pCharacter) destroyCharacter(pGame->pCharacter);
     if(pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
     if(pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
     SDL_Quit();
