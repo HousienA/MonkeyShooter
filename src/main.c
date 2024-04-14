@@ -103,35 +103,6 @@ int intializeWindow(Game *pGame) {
 }
 
 
-//input to process movement, can move diagonal 
-/*void process_input(Game *pGame, SDL_Event *pEvent) {
-    const Uint8 *state = SDL_GetKeyboardState(NULL);
-    if (state[SDL_SCANCODE_ESCAPE]) {
-        game_running = FALSE;
-    }
-    //checks the state for which inputs are available in window
-    switch (pGame->state) {
-        case MENU:
-            if (state[SDL_SCANCODE_SPACE]) {
-                pGame->state = ONGOING;
-            }
-            break;
-        case ONGOING:
-            if (state[SDL_SCANCODE_UP]) {
-                turnUpp(pGame->pCharacter);
-            }
-            if (state[SDL_SCANCODE_DOWN]) {
-                turnDown(pGame->pCharacter);
-            }
-            if (state[SDL_SCANCODE_LEFT]) {
-                turnLeft(pGame->pCharacter);
-            }
-            if (state[SDL_SCANCODE_RIGHT]) {
-                turnRight(pGame->pCharacter);
-            }
-            break;
-    }
-}*/
 
 
 //function to run the game with events linked to the main struct
@@ -141,7 +112,6 @@ void run(Game *pGame){
     while(!close_requested){
         while(SDL_PollEvent(&event)){
             if(event.type==SDL_QUIT) close_requested = TRUE;
-            //else process_input(pGame,&event);
         }
     const Uint8 *state = SDL_GetKeyboardState(NULL);
         
@@ -156,10 +126,7 @@ void run(Game *pGame){
 
             case ONGOING:
                 // Update character position based on user input
-                pGame->pCharacter->moving_left = state[SDL_SCANCODE_A] > 0;
-                pGame->pCharacter->moving_right = state[SDL_SCANCODE_D] > 0;
-                pGame->pCharacter->moving_up = state[SDL_SCANCODE_W] > 0;
-                pGame->pCharacter->moving_down = state[SDL_SCANCODE_S] > 0;
+                const Uint8 *state = SDL_GetKeyboardState(NULL);
 
                 if (state[SDL_SCANCODE_A]) {
                     turnLeft(pGame->pCharacter);

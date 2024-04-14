@@ -6,12 +6,6 @@
 Character *createCharacter(SDL_Renderer *renderer)
 {
     Character *pCharacter = malloc(sizeof(Character));
-
-
-    pCharacter->moving_left = false;
-    pCharacter->moving_right = false;
-    pCharacter->moving_up = false;
-    pCharacter->moving_down = false;
     pCharacter->dest.x = 100;
     pCharacter->dest.y = 50;
     pCharacter->dest.w = 64;

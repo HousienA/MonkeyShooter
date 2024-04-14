@@ -6,10 +6,6 @@
 #include <SDL2/SDL_image.h>
 
 typedef struct {
-    bool moving_left;
-    bool moving_right;
-    bool moving_up;
-    bool moving_down;
     SDL_Rect dest;
     SDL_Rect source;
     SDL_Renderer *renderer;
