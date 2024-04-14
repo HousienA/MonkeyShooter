@@ -16,7 +16,7 @@ typedef struct {
     SDL_Texture *tex;
 } Character;
 
-Character *createCharacter();
+Character *createCharacter(SDL_Renderer *renderer);
 void turnLeft(Character *pCharacter);
 void turnRight(Character *pCharacter);
 void turnUpp(Character *pCharacter);

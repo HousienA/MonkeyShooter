@@ -1,0 +1,20 @@
+# Location of source files
+SRCDIR=./src
+
+# Name of the compiler
+CC=gcc
+
+INCLUDE = -I/opt/homebrew/include/
+LDFLAGS = -L/opt/homebrew/lib/ -lSDL2main -lSDL2 -lSDL2_image -lm 
+
+main: main.o character.o
+	gcc -o main main.o character.o $(LDFLAGS)
+
+character.o: $(SRCDIR)/character.c 
+	gcc -c $(INCLUDE) $(SRCDIR)/character.c 
+
+main.o: $(SRCDIR)/main.c 
+	gcc -c $(INCLUDE) $(SRCDIR)/main.c
+
+clean:
+	rm -f *.o main
