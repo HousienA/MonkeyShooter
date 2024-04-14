@@ -1,3 +1,5 @@
+#include "../include/game.h"
+#include "../include/character.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -5,8 +7,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#include "../include/game.h"
-#include "../include/character.h"
+
 
 int game_running = FALSE;
 
@@ -102,6 +103,7 @@ int intializeWindow(Game *pGame) {
 }
 
 
+<<<<<<< HEAD
 //input to process movement, can move diagonal 
 void process_input(Game *pGame, SDL_Event *pEvent) {
     const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -131,6 +133,8 @@ void process_input(Game *pGame, SDL_Event *pEvent) {
             break;
     }
 }
+=======
+>>>>>>> 20440379ca7e0a5be29ccd65b18e12a7eb8a0d52
 
 
 //function to run the game with events linked to the main struct
@@ -140,21 +144,21 @@ void run(Game *pGame){
     while(!close_requested){
         while(SDL_PollEvent(&event)){
             if(event.type==SDL_QUIT) close_requested = TRUE;
-            else process_input(pGame,&event);
         }
-
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
+        
         switch(pGame->state){
             case MENU:
             
                 SDL_RenderCopy(pGame->pRenderer, pGame->menuTexture, NULL, &pGame->menu_rect); // Render menu image if state is in menu
+                
+                if (state[SDL_SCANCODE_SPACE]==1){
+                    pGame->state = ONGOING;
+                }
                 break;
+
             case ONGOING:
                 // Update character position based on user input
-                const Uint8 *state = SDL_GetKeyboardState(NULL);
-                pGame->pCharacter->moving_left = state[SDL_SCANCODE_A] > 0;
-                pGame->pCharacter->moving_right = state[SDL_SCANCODE_D] > 0;
-                pGame->pCharacter->moving_up = state[SDL_SCANCODE_W] > 0;
-                pGame->pCharacter->moving_down = state[SDL_SCANCODE_S] > 0;
 
                 if (state[SDL_SCANCODE_A]) {
                     turnLeft(pGame->pCharacter);
@@ -168,6 +172,7 @@ void run(Game *pGame){
                 if (state[SDL_SCANCODE_S] && pGame->pCharacter->dest.y + pGame->pCharacter->dest.h < WINDOW_HEIGHT) {
                     turnDown(pGame->pCharacter);
                 }
+                
                 break;
         }
 
