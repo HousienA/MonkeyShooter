@@ -126,7 +126,6 @@ void run(Game *pGame){
 
             case ONGOING:
                 // Update character position based on user input
-                const Uint8 *state = SDL_GetKeyboardState(NULL);
 
                 if (state[SDL_SCANCODE_A]) {
                     turnLeft(pGame->pCharacter);
