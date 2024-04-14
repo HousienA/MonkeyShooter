@@ -53,7 +53,7 @@ int intializeWindow(Game *pGame) {
         SDL_WINDOWPOS_CENTERED,
         WINDOW_WIDTH,
         WINDOW_HEIGHT,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+        0
     );
 
     if (!pGame->pWindow) {
@@ -117,7 +117,7 @@ void process_input(Game *pGame, SDL_Event *pEvent) {
             break;
         case ONGOING:
             if (state[SDL_SCANCODE_UP]) {
-                turnUpp(pGame->pCharacter);
+                turnUp(pGame->pCharacter);
             }
             if (state[SDL_SCANCODE_DOWN]) {
                 turnDown(pGame->pCharacter);
@@ -145,6 +145,7 @@ void run(Game *pGame){
 
         switch(pGame->state){
             case MENU:
+            
                 SDL_RenderCopy(pGame->pRenderer, pGame->menuTexture, NULL, &pGame->menu_rect); // Render menu image if state is in menu
                 break;
             case ONGOING:
@@ -162,7 +163,7 @@ void run(Game *pGame){
                     turnRight(pGame->pCharacter);
                 }
                 if (state[SDL_SCANCODE_W] && pGame->pCharacter->dest.y > 0) {
-                    turnUpp(pGame->pCharacter);
+                    turnUp(pGame->pCharacter);
                 }
                 if (state[SDL_SCANCODE_S] && pGame->pCharacter->dest.y + pGame->pCharacter->dest.h < WINDOW_HEIGHT) {
                     turnDown(pGame->pCharacter);

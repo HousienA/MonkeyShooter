@@ -12,8 +12,8 @@ Character *createCharacter(SDL_Renderer *renderer)
     pCharacter->moving_right = false;
     pCharacter->moving_up = false;
     pCharacter->moving_down = false;
-    pCharacter->dest.x = 100;
-    pCharacter->dest.y = 50;
+    pCharacter->dest.x = 200;
+    pCharacter->dest.y = 550;
     pCharacter->dest.w = 64;
     pCharacter->dest.h = 64;
 
@@ -31,26 +31,50 @@ Character *createCharacter(SDL_Renderer *renderer)
 
     return pCharacter;
 }
-
 void turnLeft(Character *pCharacter)
 {
-    pCharacter->dest.x -= MOVE_SPEED;
+    // Check if character is within boundaries and not hitting wall1 or wall2 on the right side
+    if (pCharacter->dest.x - MOVE_SPEED >= 140 &&
+        !(pCharacter->dest.x - MOVE_SPEED <= WALL1_X2 && pCharacter->dest.y + CHARACTER_HEIGHT >= WALL1_Y2 && pCharacter->dest.y <= WALL1_Y1) &&
+        !(pCharacter->dest.x - MOVE_SPEED <= WALL2_X2 && pCharacter->dest.y + CHARACTER_HEIGHT >= WALL2_Y2 && pCharacter->dest.y <= WALL2_Y1))
+    {
+        pCharacter->dest.x -= MOVE_SPEED;
+    }
 }
 
 void turnRight(Character *pCharacter)
 {
-    pCharacter->dest.x += MOVE_SPEED;
+    // Check if character is within boundaries and not hitting wall1 or wall2 on the left side
+    if (pCharacter->dest.x + MOVE_SPEED + CHARACTER_WIDTH <= 660 &&
+        !(pCharacter->dest.x + MOVE_SPEED >= WALL1_X1 && pCharacter->dest.y + CHARACTER_HEIGHT >= WALL1_Y2 && pCharacter->dest.y <= WALL1_Y1) &&
+        !(pCharacter->dest.x + MOVE_SPEED >= WALL2_X1 && pCharacter->dest.y + CHARACTER_HEIGHT >= WALL2_Y2 && pCharacter->dest.y <= WALL2_Y1))
+    {
+        pCharacter->dest.x += MOVE_SPEED;
+    }
 }
 
-void turnUpp(Character *pCharacter)
+void turnUp(Character *pCharacter)
 {
-    pCharacter->dest.y -= MOVE_SPEED;
+    // Check if character is within boundaries and not hitting wall1 or wall2 below
+    if (pCharacter->dest.y - MOVE_SPEED >= 130 &&
+        !(pCharacter->dest.y - MOVE_SPEED <= WALL1_Y2 && pCharacter->dest.x + CHARACTER_WIDTH >= WALL1_X1 && pCharacter->dest.x <= WALL1_X2) &&
+        !(pCharacter->dest.y - MOVE_SPEED <= WALL2_Y2 && pCharacter->dest.x + CHARACTER_WIDTH >= WALL2_X1 && pCharacter->dest.x <= WALL2_X2))
+    {
+        pCharacter->dest.y -= MOVE_SPEED;
+    }
 }
 
 void turnDown(Character *pCharacter)
 {
-    pCharacter->dest.y += MOVE_SPEED;
+    // Check if character is within boundaries and not hitting wall1 or wall2 above
+    if (pCharacter->dest.y + MOVE_SPEED + CHARACTER_HEIGHT <= 650 &&
+        !(pCharacter->dest.y + MOVE_SPEED + CHARACTER_HEIGHT >= WALL1_Y1 && pCharacter->dest.x + CHARACTER_WIDTH >= WALL1_X1 && pCharacter->dest.x <= WALL1_X2) &&
+        !(pCharacter->dest.y + MOVE_SPEED + CHARACTER_HEIGHT >= WALL2_Y1 && pCharacter->dest.x + CHARACTER_WIDTH >= WALL2_X1 && pCharacter->dest.x <= WALL2_X2))
+    {
+        pCharacter->dest.y += MOVE_SPEED;
+    }
 }
+
 
 void destroyCharacter(Character *pCharacter)
 {
