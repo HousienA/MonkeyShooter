@@ -6,8 +6,8 @@
 Character *createCharacter(SDL_Renderer *renderer)
 {
     Character *pCharacter = malloc(sizeof(Character));
-    pCharacter->dest.x = 100;
-    pCharacter->dest.y = 50;
+    pCharacter->dest.x = 200;
+    pCharacter->dest.y = 550;
     pCharacter->dest.w = 64;
     pCharacter->dest.h = 64;
 
@@ -28,23 +28,34 @@ Character *createCharacter(SDL_Renderer *renderer)
 
 void turnLeft(Character *pCharacter)
 {
-    pCharacter->dest.x -= MOVE_SPEED;
+    if (pCharacter->dest.x - MOVE_SPEED >= 140 &&
+        (pCharacter->dest.x - MOVE_SPEED > 520 || pCharacter->dest.y > 430 || pCharacter->dest.y < 130) &&
+        (pCharacter->dest.x - MOVE_SPEED > 345 || pCharacter->dest.x - MOVE_SPEED + CHARACTER_WIDTH < 275 || pCharacter->dest.y + CHARACTER_HEIGHT < 375))
+        pCharacter->dest.x -= MOVE_SPEED;
 }
 
 void turnRight(Character *pCharacter)
 {
-    pCharacter->dest.x += MOVE_SPEED;
+    if (pCharacter->dest.x + MOVE_SPEED + CHARACTER_WIDTH <= 660 &&
+        (pCharacter->dest.x + MOVE_SPEED + CHARACTER_WIDTH < 445 || pCharacter->dest.y > 430 || pCharacter->dest.y < 130) &&
+        (pCharacter->dest.x + MOVE_SPEED > 345 || pCharacter->dest.x + MOVE_SPEED + CHARACTER_WIDTH < 275 || pCharacter->dest.y + CHARACTER_HEIGHT < 375))
+        pCharacter->dest.x += MOVE_SPEED;
 }
 
 void turnUpp(Character *pCharacter)
 {
-    pCharacter->dest.y -= MOVE_SPEED;
+    if (pCharacter->dest.y - MOVE_SPEED >= 130 &&
+        (pCharacter->dest.y - MOVE_SPEED > 430 || pCharacter->dest.x + CHARACTER_WIDTH < 445 || pCharacter->dest.x > 520))
+        pCharacter->dest.y -= MOVE_SPEED;
 }
 
 void turnDown(Character *pCharacter)
 {
-    pCharacter->dest.y += MOVE_SPEED;
+    if (pCharacter->dest.y + MOVE_SPEED + CHARACTER_HEIGHT <= 650 &&
+        (pCharacter->dest.y + MOVE_SPEED + CHARACTER_HEIGHT < 375 || pCharacter->dest.x + CHARACTER_WIDTH < 275 || pCharacter->dest.x > 345))
+        pCharacter->dest.y += MOVE_SPEED;
 }
+
 
 void destroyCharacter(Character *pCharacter)
 {
