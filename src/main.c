@@ -1,5 +1,6 @@
 #include "../include/game.h"
 #include "../include/character.h"
+#include "../include/world.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -124,24 +125,41 @@ void run(Game *pGame){
                 }
                 break;
 
-            case ONGOING:
-                // Update character position based on user input
+               case ONGOING:
+                // Update character position based on user input while calling collision function from world.c to check if valid
 
                 if (state[SDL_SCANCODE_A]) {
                     turnLeft(pGame->pCharacter);
+                    if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
+                        //if collision stop movement
+                        turnRight(pGame->pCharacter);
+                    }
                 }
                 if (state[SDL_SCANCODE_D] && pGame->pCharacter->dest.x + pGame->pCharacter->dest.w < WINDOW_WIDTH) {
                     turnRight(pGame->pCharacter);
+                    if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
+                        //if collision stop movement
+                        turnLeft(pGame->pCharacter);
+                    }
                 }
                 if (state[SDL_SCANCODE_W] && pGame->pCharacter->dest.y > 0) {
                     turnUpp(pGame->pCharacter);
+                    if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
+                        //if collision stop movement
+                        turnDown(pGame->pCharacter);
+                    }
                 }
                 if (state[SDL_SCANCODE_S] && pGame->pCharacter->dest.y + pGame->pCharacter->dest.h < WINDOW_HEIGHT) {
                     turnDown(pGame->pCharacter);
+                    if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
+                        //if collision stop movement
+                        turnUpp(pGame->pCharacter);
+                    }
                 }
-                
+
                 break;
         }
+
 
         // Clear the renderer
         SDL_RenderClear(pGame->pRenderer);
