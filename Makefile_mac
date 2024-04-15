@@ -7,8 +7,8 @@ CC=gcc
 INCLUDE = -I/opt/homebrew/include/
 LDFLAGS = -L/opt/homebrew/lib/ -lSDL2main -lSDL2 -lSDL2_image -lm 
 
-main: main.o character.o
-	gcc -o main main.o character.o $(LDFLAGS)
+main: main.o character.o world.o
+	gcc -o main main.o character.o world.o $(LDFLAGS)
 
 character.o: $(SRCDIR)/character.c 
 	gcc -c $(INCLUDE) $(SRCDIR)/character.c 
@@ -16,5 +16,9 @@ character.o: $(SRCDIR)/character.c
 main.o: $(SRCDIR)/main.c 
 	gcc -c $(INCLUDE) $(SRCDIR)/main.c
 
+world.o: $(SRCDIR)/world.c
+	gcc -c $(INCLUDE) $(SRCDIR)/world.c
 clean:
-	rm -f *.o main
+	rm *.o
+	rm *.exe
+	rm -f main
