@@ -10,8 +10,6 @@
 
 
 
-int game_running = FALSE;
-
 enum GameState {MENU, ONGOING};
 typedef enum GameState GameState; 
 
@@ -118,7 +116,6 @@ void run(Game *pGame){
         
         switch(pGame->state){
             case MENU:
-                SDL_RenderCopy(pGame->pRenderer, pGame->menuTexture, NULL, &pGame->menu_rect); // Render menu image if state is in menu
                 
                 if (state[SDL_SCANCODE_SPACE]==1){
                     pGame->state = ONGOING;
@@ -135,21 +132,21 @@ void run(Game *pGame){
                         turnRight(pGame->pCharacter);
                     }
                 }
-                if (state[SDL_SCANCODE_D] && pGame->pCharacter->dest.x + pGame->pCharacter->dest.w < WINDOW_WIDTH) {
+                if (state[SDL_SCANCODE_D]) {
                     turnRight(pGame->pCharacter);
                     if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
                         //if collision stop movement
                         turnLeft(pGame->pCharacter);
                     }
                 }
-                if (state[SDL_SCANCODE_W] && pGame->pCharacter->dest.y > 0) {
+                if (state[SDL_SCANCODE_W]) {
                     turnUpp(pGame->pCharacter);
                     if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
                         //if collision stop movement
                         turnDown(pGame->pCharacter);
                     }
                 }
-                if (state[SDL_SCANCODE_S] && pGame->pCharacter->dest.y + pGame->pCharacter->dest.h < WINDOW_HEIGHT) {
+                if (state[SDL_SCANCODE_S]) {
                     turnDown(pGame->pCharacter);
                     if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
                         //if collision stop movement
