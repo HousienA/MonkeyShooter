@@ -8,21 +8,31 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+#define NR_OF_MENUTEXTURES 2
+
 
 
 enum GameState {MENU, ONGOING};
 typedef enum GameState GameState; 
 
+enum menuState{SETTINGS, CONFIGURE, INGAME};
+typedef enum menuState MenuState; 
+
 //main struct for game
+struct menuTextures{
+    SDL_Texture *SDLmTex[NR_OF_MENUTEXTURES];
+    char MenuTextureFiles[NR_OF_MENUTEXTURES][60];
+}; typedef struct menuTextures MenuTextures;
 struct game{
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
     Character *pCharacter;
     SDL_Texture *background;
-    SDL_Texture *menuTexture;
+    MenuTextures *menuTextures;
     SDL_Rect background_rect;
     SDL_Rect menu_rect;
     GameState state;
+    MenuState mState;
 }; typedef struct game Game;
 
 int intializeWindow(Game *pGame); //removed renderer argument
@@ -46,6 +56,18 @@ int intializeWindow(Game *pGame) {
         printf("Error: %s\n", SDL_GetError());
         return FALSE;
     }
+      pGame->menuTextures = malloc(sizeof(MenuTextures));
+    if (pGame->menuTextures == NULL) {
+        printf("Error allocating memory for menu textures: %s\n", SDL_GetError());
+        return false; // Return false if memory allocation fails
+    }
+
+    // Initialize the SDLmTex pointers to NULL
+    for (int i = 0; i < NR_OF_MENUTEXTURES; i++) {
+        pGame->menuTextures->SDLmTex[i] = NULL;
+    }
+    strcpy(pGame->menuTextures->MenuTextureFiles[0], "resources/mMenu.png");
+    strcpy(pGame->menuTextures->MenuTextureFiles[1], "resources/IPconfigure.png");
 
     pGame->pWindow = SDL_CreateWindow(
         "MonkeyShooter",
@@ -76,12 +98,13 @@ int intializeWindow(Game *pGame) {
     }
 
     // Load the menu image with error if it doens't work
-    pGame->menuTexture = IMG_LoadTexture(pGame->pRenderer, "resources/mMenu.png");
-    if (!pGame->menuTexture) {
-        printf("Error loading menu image: %s\n", IMG_GetError());
-        return FALSE;
+    for(int i = 0; i < NR_OF_MENUTEXTURES; i++){
+        pGame->menuTextures->SDLmTex[i] = IMG_LoadTexture(pGame->pRenderer, pGame->menuTextures->MenuTextureFiles[i]);
+        if (!pGame->menuTextures->SDLmTex[i]) {
+            printf("Error loading menu image: %s\n", IMG_GetError());
+            return FALSE;
+        }
     }
-
     pGame->pCharacter = createCharacter(pGame->pRenderer);
 
     if (!pGame->pCharacter) {
@@ -119,8 +142,13 @@ void run(Game *pGame){
                 
                 if (state[SDL_SCANCODE_SPACE]==1){
                     pGame->state = ONGOING;
-                }
+                
                 break;
+                //switch(pGame->mState){
+                //case SETTINGS:;
+                //case CONFIGURE:;
+                }
+                
 
                case ONGOING:
                 // Update character position based on user input while calling collision function from world.c to check if valid
@@ -164,7 +192,7 @@ void run(Game *pGame){
         // Check the game state
         if (pGame->state == MENU) {
             // Render the menu image
-            SDL_RenderCopy(pGame->pRenderer, pGame->menuTexture, NULL, &pGame->menu_rect);
+            SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[0], NULL, &pGame->menu_rect);
         }
         else if (pGame->state == ONGOING) {
             // Draw the background image on the screen
@@ -183,7 +211,10 @@ void run(Game *pGame){
 void close(Game *pGame){
     if(pGame->pCharacter) destroyCharacter(pGame->pCharacter);
     if(pGame->background) SDL_DestroyTexture(pGame->background); // Free the background texture
-    if(pGame->menuTexture) SDL_DestroyTexture(pGame->menuTexture); // Free the menu texture
+    for (int i = 0; i < NR_OF_MENUTEXTURES; i++){
+        if(pGame->menuTextures->SDLmTex[i]) SDL_DestroyTexture(pGame->menuTextures->SDLmTex[i]);
+    }
+     // Free the menu texture
     if(pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
     if(pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
     SDL_Quit();
