@@ -154,12 +154,9 @@ void run(Game *pGame){
                 }   
                 else if(mouseX>288 && mouseX<533 && mouseY>404 && mouseY<455 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
                 else if(mouseX>288 && mouseX<533 && mouseY>469 && mouseY<522 &&(button && SDL_BUTTON_LMASK)) close_requested = TRUE;
-                switch (pGame->menuState)
-                {
-                case SETTINGS: if(mouseX>576 && mouseX<588 && mouseY>400 && mouseY<413 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = MAIN;
-                    break;
                 
-                default:
+                switch (pGame->menuState){
+                    case SETTINGS: if(mouseX>576 && mouseX<588 && mouseY>400 && mouseY<413 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = MAIN;
                     break;
                 }
 
@@ -201,6 +198,10 @@ void run(Game *pGame){
                         //if collision stop movement
                         turnUpp(pGame->pCharacter);
                     }
+                }
+                if(state[SDL_SCANCODE_ESCAPE]){
+                    pGame->state = MENU;
+                    pGame->menuState = MAIN;
                 }
 
                 break;
