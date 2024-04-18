@@ -15,7 +15,7 @@
 enum GameState {MENU, ONGOING};
 typedef enum GameState GameState; 
 
-enum menuState{SETTINGS, CONFIGURE, INGAME};
+enum menuState{MAIN, SETTINGS, CONFIGURE, INGAME};
 typedef enum menuState MenuState; 
 
 //main struct for game
@@ -32,7 +32,7 @@ struct game{
     SDL_Rect background_rect;
     SDL_Rect menu_rect;
     GameState state;
-    MenuState mState;
+    MenuState menuState;
 }; typedef struct game Game;
 
 int intializeWindow(Game *pGame); //removed renderer argument
@@ -56,7 +56,9 @@ int intializeWindow(Game *pGame) {
         printf("Error: %s\n", SDL_GetError());
         return FALSE;
     }
-      pGame->menuTextures = malloc(sizeof(MenuTextures));
+    
+    pGame->menuTextures = malloc(sizeof(MenuTextures));
+    
     if (pGame->menuTextures == NULL) {
         printf("Error allocating memory for menu textures: %s\n", SDL_GetError());
         return false; // Return false if memory allocation fails
@@ -66,6 +68,7 @@ int intializeWindow(Game *pGame) {
     for (int i = 0; i < NR_OF_MENUTEXTURES; i++) {
         pGame->menuTextures->SDLmTex[i] = NULL;
     }
+    
     strcpy(pGame->menuTextures->MenuTextureFiles[0], "resources/mMenu.png");
     strcpy(pGame->menuTextures->MenuTextureFiles[1], "resources/IPconfigure.png");
 
@@ -136,18 +139,36 @@ void run(Game *pGame){
             if(event.type==SDL_QUIT) close_requested = TRUE;
         }
     const Uint8 *state = SDL_GetKeyboardState(NULL);
+    int mouseX, mouseY, button;
         
         switch(pGame->state){
             case MENU:
                 
-                if (state[SDL_SCANCODE_SPACE]==1){
-                    pGame->state = ONGOING;
                 
+                    
+                button = SDL_GetMouseState(&mouseX, &mouseY);
+                    
+                if(mouseX>288 && mouseX<533 && mouseY>342 && mouseY<393 &&(button && SDL_BUTTON_LMASK)){ 
+                    pGame->state = ONGOING; 
+                    
+                }   
+                else if(mouseX>288 && mouseX<533 && mouseY>404 && mouseY<455 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
+                else if(mouseX>288 && mouseX<533 && mouseY>469 && mouseY<522 &&(button && SDL_BUTTON_LMASK)) close_requested = TRUE;
+                switch (pGame->menuState)
+                {
+                case SETTINGS: if(mouseX>576 && mouseX<588 && mouseY>400 && mouseY<413 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = MAIN;
+                    break;
+                
+                default:
+                    break;
+                }
+
+
                 break;
+                
                 //switch(pGame->mState){
                 //case SETTINGS:;
-                //case CONFIGURE:;
-                }
+                //case CONFIGURE:
                 
 
                case ONGOING:
@@ -190,11 +211,14 @@ void run(Game *pGame){
         SDL_RenderClear(pGame->pRenderer);
 
         // Check the game state
-        if (pGame->state == MENU) {
+        if (pGame->state == MENU && pGame->menuState == MAIN) {
             // Render the menu image
             SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[0], NULL, &pGame->menu_rect);
         }
-        else if (pGame->state == ONGOING) {
+        else if(pGame->state == MENU && pGame->menuState == SETTINGS){
+            SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[1], NULL, &pGame->menu_rect);
+        }
+        if (pGame->state == ONGOING) {
             // Draw the background image on the screen
             SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, &pGame->background_rect);
             // Draw the character on the screen
