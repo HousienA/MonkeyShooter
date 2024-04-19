@@ -148,20 +148,14 @@ void run(Game *pGame){
                     
                 button = SDL_GetMouseState(&mouseX, &mouseY);
                     
-                if(mouseX>288 && mouseX<533 && mouseY>342 && mouseY<393 &&(button && SDL_BUTTON_LMASK)){ 
-                    pGame->state = ONGOING; 
-                    
-                }   
-                else if(mouseX>288 && mouseX<533 && mouseY>404 && mouseY<455 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
-                else if(mouseX>288 && mouseX<533 && mouseY>469 && mouseY<522 &&(button && SDL_BUTTON_LMASK)) close_requested = TRUE;
+                if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)) pGame->state = ONGOING;  
+                else if(mouseX>270 && mouseX<550 && mouseY>400 && mouseY<443 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
+                else if(mouseX>288 && mouseX<533 && mouseY>497 && mouseY<541 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = CONFIGURE;
+                else if(mouseX>320&& mouseX<499 && mouseY>593 && mouseY<637 &&(button && SDL_BUTTON_LMASK)) close_requested = TRUE;
+
+
+
                 
-                switch (pGame->menuState){
-                    case SETTINGS: if(mouseX>576 && mouseX<588 && mouseY>400 && mouseY<413 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = MAIN;
-                    break;
-                }
-
-
-                break;
                 
                 //switch(pGame->mState){
                 //case SETTINGS:;
