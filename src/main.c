@@ -1,6 +1,7 @@
 #include "../include/game.h"
 #include "../include/character.h"
 #include "../include/world.h"
+#include "../include/bullet.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -33,6 +34,8 @@ struct game{
     SDL_Rect menu_rect;
     GameState state;
     MenuState menuState;
+    Bullet *bullets[1000];
+    int num_bullets;
 }; typedef struct game Game;
 
 int intializeWindow(Game *pGame); //removed renderer argument
@@ -132,9 +135,13 @@ int intializeWindow(Game *pGame) {
 
 //function to run the game with events linked to the main struct
 void handle_input(Game *pGame) {
+    static Uint32 lastShootTime = 0; // Variable to store the time of the last shot
+    Uint32 currentTime = SDL_GetTicks(); // Get the current time in milliseconds
     int close_requested = FALSE;	
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     int mouseX, mouseY, button;
+    int x,y;
+    static int mouseClick = 0;
 
     switch(pGame->state){
         case MENU:
@@ -172,7 +179,24 @@ void handle_input(Game *pGame) {
                     turnUpp(pGame->pCharacter);
                 }
             }
-
+            if (SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK && !mouseClick && currentTime - lastShootTime >= 1000) {
+                // Shoot a bullet
+                float bulletStartX = pGame->pCharacter->dest.x + pGame->pCharacter->dest.w / 2; // Bullet starts from character's center horizontally
+                float bulletStartY = pGame->pCharacter->dest.y + pGame->pCharacter->dest.h / 2; // Bullet starts from character's center vertically
+                pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, bulletStartX, bulletStartY);
+                if (pGame->bullets[pGame->num_bullets]) {
+                    // Calculate direction vector (normalized)
+                    float dx = x - bulletStartX;
+                    float dy = y - bulletStartY;
+                    float mag = sqrtf(dx * dx + dy * dy);
+                    pGame->bullets[pGame->num_bullets]->dx = dx / mag * BULLET_SPEED;
+                    pGame->bullets[pGame->num_bullets]->dy = dy / mag * BULLET_SPEED;
+                    pGame->num_bullets++;
+                }                
+                lastShootTime = currentTime;
+            } else if (!(SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK)) { // If the button is not pressed, reset the flag
+                mouseClick = 0;
+            };
             //Handle function for health
             handleShooting(pGame->pCharacter);
            
@@ -216,6 +240,10 @@ void run(Game *pGame){
             SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, &pGame->background_rect);
             // Draw the character on the screen
             SDL_RenderCopyEx(pGame->pRenderer, pGame->pCharacter->tex, &pGame->pCharacter->source, &pGame->pCharacter->dest, 0, NULL, SDL_FLIP_NONE);
+            for (int i = 0; i < pGame->num_bullets; i++) {
+                moveBullet(pGame->bullets[i]); // Update bullet position
+                drawBullet(pGame->bullets[i], pGame->pRenderer); // Draw bullet
+            }
         }
 
         // Update the screen
