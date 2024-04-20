@@ -172,6 +172,9 @@ void handle_input(Game *pGame) {
                     turnUpp(pGame->pCharacter);
                 }
             }
+
+            //Handle function for health
+            handleShooting(pGame->pCharacter);
            
             
 

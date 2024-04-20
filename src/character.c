@@ -1,6 +1,7 @@
 #include "../include/character.h"
 #include <stdlib.h>
 #include "../include/game.h"
+#include "../include/world.h"
 
 
 Character *createCharacter(SDL_Renderer *renderer)
@@ -10,6 +11,9 @@ Character *createCharacter(SDL_Renderer *renderer)
     pCharacter->dest.y = 200;
     pCharacter->dest.w = 64;
     pCharacter->dest.h = 64;
+
+    pCharacter->health = MAX_HEALTH;
+
 
     IMG_Init(IMG_INIT_PNG | IMG_INIT_PNG);
     SDL_Surface *image = IMG_Load("resources/Monkeyfront.png");
@@ -24,6 +28,14 @@ Character *createCharacter(SDL_Renderer *renderer)
     pCharacter->source.h = PLAYER_HEIGHT;
 
     return pCharacter;
+}
+
+void decreaseHealth(Character *pCharacter){
+    pCharacter->health--;
+    //if health is zero, character dies meaning destroy
+    if(pCharacter->health==0){
+        destroyCharacter(pCharacter);
+    }
 }
 
 
@@ -51,4 +63,11 @@ void destroyCharacter(Character *pCharacter)
 {
     SDL_DestroyTexture(pCharacter->tex);
     free(pCharacter);
+}
+
+void handleShooting(Character *pCharacter){
+    if(checkCollision(pCharacter, walls, 2)){
+        decreaseHealth(pCharacter);
+        //destroyBullet(); //Bullet function to destroy shooting
+    }
 }
