@@ -131,77 +131,72 @@ int intializeWindow(Game *pGame) {
 
 
 //function to run the game with events linked to the main struct
+void handle_input(Game *pGame) {
+    int close_requested = FALSE;	
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
+    int mouseX, mouseY, button;
+
+    switch(pGame->state){
+        case MENU:
+            button = SDL_GetMouseState(&mouseX, &mouseY);
+
+            if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)) pGame->state = ONGOING;  
+            else if(mouseX>270 && mouseX<550 && mouseY>400 && mouseY<443 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
+            else if(mouseX>288 && mouseX<533 && mouseY>497 && mouseY<541 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = CONFIGURE;
+            else if(mouseX>320&& mouseX<499 && mouseY>593 && mouseY<637 &&(button && SDL_BUTTON_LMASK)) close(pGame); // Exit the game
+
+            break;
+
+        case ONGOING:
+            if (state[SDL_SCANCODE_A]) {
+                turnLeft(pGame->pCharacter);
+                if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
+                    turnRight(pGame->pCharacter);
+                }
+            }
+            if (state[SDL_SCANCODE_D]) {
+                turnRight(pGame->pCharacter);
+                if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
+                    turnLeft(pGame->pCharacter);
+                }
+            }
+            if (state[SDL_SCANCODE_W]) {
+                turnUpp(pGame->pCharacter);
+                if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
+                    turnDown(pGame->pCharacter);
+                }
+            }
+            if (state[SDL_SCANCODE_S]) {
+                turnDown(pGame->pCharacter);
+                if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
+                    turnUpp(pGame->pCharacter);
+                }
+            }
+           
+            
+
+            break;
+    }
+     if(state[SDL_SCANCODE_ESCAPE]){
+                pGame->state = MENU;
+                pGame->menuState = MAIN;}
+    // Check for Escape key press in any MenuState
+    
+}
+
 void run(Game *pGame){
     int close_requested = 0;
     SDL_Event event;
+
     while(!close_requested){
+        // Poll SDL events
         while(SDL_PollEvent(&event)){
             if(event.type==SDL_QUIT) close_requested = TRUE;
         }
-    const Uint8 *state = SDL_GetKeyboardState(NULL);
-    int mouseX, mouseY, button;
+
+        handle_input(pGame); // Call handle_input to process input
         
-        switch(pGame->state){
-            case MENU:
-                
-                
-                    
-                button = SDL_GetMouseState(&mouseX, &mouseY);
-                    
-                if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)) pGame->state = ONGOING;  
-                else if(mouseX>270 && mouseX<550 && mouseY>400 && mouseY<443 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
-                else if(mouseX>288 && mouseX<533 && mouseY>497 && mouseY<541 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = CONFIGURE;
-                else if(mouseX>320&& mouseX<499 && mouseY>593 && mouseY<637 &&(button && SDL_BUTTON_LMASK)) close_requested = TRUE;
-
-
-
-                
-                
-                //switch(pGame->mState){
-                //case SETTINGS:;
-                //case CONFIGURE:
-                
-
-               case ONGOING:
-                // Update character position based on user input while calling collision function from world.c to check if valid
-
-                if (state[SDL_SCANCODE_A]) {
-                    turnLeft(pGame->pCharacter);
-                    if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
-                        //if collision stop movement
-                        turnRight(pGame->pCharacter);
-                    }
-                }
-                if (state[SDL_SCANCODE_D]) {
-                    turnRight(pGame->pCharacter);
-                    if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
-                        //if collision stop movement
-                        turnLeft(pGame->pCharacter);
-                    }
-                }
-                if (state[SDL_SCANCODE_W]) {
-                    turnUpp(pGame->pCharacter);
-                    if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
-                        //if collision stop movement
-                        turnDown(pGame->pCharacter);
-                    }
-                }
-                if (state[SDL_SCANCODE_S]) {
-                    turnDown(pGame->pCharacter);
-                    if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
-                        //if collision stop movement
-                        turnUpp(pGame->pCharacter);
-                    }
-                }
-                if(state[SDL_SCANCODE_ESCAPE]){
-                    pGame->state = MENU;
-                    pGame->menuState = MAIN;
-                }
-
-                break;
-        }
-
-
+        // Render the game
         // Clear the renderer
         SDL_RenderClear(pGame->pRenderer);
 
