@@ -2,6 +2,7 @@
 #define WORLD_H
 
 #include "../include/character.h"
+#include "../include/bullet.h"
 
 //defines coordinates and areas in map
 #define MAP_WIDTH 800
@@ -24,5 +25,6 @@ extern Wall walls[2];
 
 //function to check collision with character
 bool checkCollision(Character *character, Wall *walls, int num_walls);
+//bool checkCollisionWithBullet(Character *character, Bullet *bullet);
 
 #endif // WORLD_H

@@ -42,6 +42,7 @@ int intializeWindow(Game *pGame); //removed renderer argument
 void process_input(Game *pGame,SDL_Event *pEvent);
 void run(Game *pGame);
 void close(Game *pGame);
+void renderHealthBar(Character *pCharacter, SDL_Renderer *renderer);
 
 
 int main(int argv, char** args){
@@ -197,10 +198,11 @@ void handle_input(Game *pGame) {
             } else if (!(SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK)) { // If the button is not pressed, reset the flag
                 mouseClick = 0;
             };
-            //Handle function for health
-            handleShooting(pGame->pCharacter);
-           
+
+            //handle shooting
             
+            
+
 
             break;
     }
@@ -243,8 +245,19 @@ void run(Game *pGame){
             for (int i = 0; i < pGame->num_bullets; i++) {
                 moveBullet(pGame->bullets[i]); // Update bullet position
                 drawBullet(pGame->bullets[i], pGame->pRenderer); // Draw bullet
+
+                // Check for collision between bullet and character
+                if (checkCollisionBulletCharacter(pGame->bullets[i], pGame->pCharacter)) {
+                    pGame->pCharacter->health--; // Decrease character's health
+                    destroyBullet(pGame->bullets[i]); // Destroy the bullet
+                    pGame->bullets[i] = NULL;
+                }
             }
+            renderHealthBar(pGame->pCharacter, pGame->pRenderer); // Render health bar
+            
+
         }
+
 
         // Update the screen
         SDL_RenderPresent(pGame->pRenderer);
@@ -263,4 +276,14 @@ void close(Game *pGame){
     if(pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
     if(pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
     SDL_Quit();
+}
+
+void renderHealthBar(Character *pCharacter, SDL_Renderer *renderer)
+{
+    SDL_Rect healthBar = {20, 20, 100, 20}; // Health bar position and size
+    SDL_Rect remainingHealth = {20, 20, pCharacter->health * 25, 20}; // Health bar remaining size
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red color
+    SDL_RenderFillRect(renderer, &healthBar); // Draw the background of health bar
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Green color
+    SDL_RenderFillRect(renderer, &remainingHealth); // Draw the remaining health
 }

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "../include/game.h"
 #include "../include/world.h"
-
+#include "../include/bullet.h"
 
 Character *createCharacter(SDL_Renderer *renderer)
 {
@@ -11,8 +11,6 @@ Character *createCharacter(SDL_Renderer *renderer)
     pCharacter->dest.y = 200;
     pCharacter->dest.w = 64;
     pCharacter->dest.h = 64;
-
-    pCharacter->health = MAX_HEALTH;
 
 
     IMG_Init(IMG_INIT_PNG | IMG_INIT_PNG);
@@ -26,16 +24,25 @@ Character *createCharacter(SDL_Renderer *renderer)
     pCharacter->source.y = 0;
     pCharacter->source.w = PLAYER_WIDTH;
     pCharacter->source.h = PLAYER_HEIGHT;
+    pCharacter->health = MAX_HEALTH;
 
     return pCharacter;
 }
 
 void decreaseHealth(Character *pCharacter){
-    pCharacter->health--;
+    pCharacter->health-= 1;
     //if health is zero, character dies meaning destroy
-    if(pCharacter->health==0){
+    if(pCharacter->health<=0){
+        pCharacter->health = 0;
         destroyCharacter(pCharacter);
     }
+    
+}
+
+// Function to check if the character is alive
+int isCharacterAlive(Character *pCharacter)
+{
+    return pCharacter->health > 0;
 }
 
 
@@ -65,9 +72,3 @@ void destroyCharacter(Character *pCharacter)
     free(pCharacter);
 }
 
-void handleShooting(Character *pCharacter){
-    if(checkCollision(pCharacter, walls, 2)){
-        decreaseHealth(pCharacter);
-        //destroyBullet(); //Bullet function to destroy shooting
-    }
-}

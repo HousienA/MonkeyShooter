@@ -19,11 +19,13 @@ typedef struct {
 } Character;
 
 Character *createCharacter(SDL_Renderer *renderer);
+void decreaseHealth(Character *pCharacter);
+int isCharacterAlive(Character *pCharacter);
 void turnLeft(Character *pCharacter);
 void turnRight(Character *pCharacter);
 void turnUpp(Character *pCharacter);
 void turnDown(Character *pCharacter);
 void destroyCharacter(Character *pCharacter);
-void handleShooting(Character *pCharacter);
+
 
 #endif 

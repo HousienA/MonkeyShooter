@@ -27,3 +27,9 @@ bool checkCollision(Character *character, Wall *walls, int num_walls) {
     //no collision
     return FALSE;
 }
+
+
+
+
+
+
