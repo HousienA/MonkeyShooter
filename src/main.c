@@ -98,7 +98,7 @@ int intializeWindow(Game *pGame) {
     }
 
     // Load the background image with error if it doens't work
-    pGame->background = IMG_LoadTexture(pGame->pRenderer, "resources/PrototypeMap.MS2.png");
+    pGame->background = IMG_LoadTexture(pGame->pRenderer, "resources/map1.png");
     if (!pGame->background) {
         printf("Error loading background image: %s\n", IMG_GetError());
         return FALSE;
@@ -213,56 +213,69 @@ void handle_input(Game *pGame) {
     
 }
 
-void run(Game *pGame){
+void run(Game *pGame) {
     int close_requested = 0;
     SDL_Event event;
 
-    while(!close_requested){
-        // Poll SDL events
-        while(SDL_PollEvent(&event)){
-            if(event.type==SDL_QUIT) close_requested = TRUE;
+    //size of view in the window, aka zoomed camera on character
+    SDL_Rect viewport = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}; //viewport size to match window size
+
+
+    while (!close_requested) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) close_requested = TRUE;
         }
 
-        handle_input(pGame); // Call handle_input to process input
-        
+        handle_input(pGame);
+
+        //set viewport position to follow the player (player in the middle of screen)
+        viewport.x = pGame->pCharacter->dest.x - (viewport.w / 2);
+        viewport.y = pGame->pCharacter->dest.y - (viewport.h / 2);
+
+        //if player is near edge of map move the player and keep the viewport in bounds
+        if (viewport.x < 0) viewport.x = 0;
+        if (viewport.y < 0) viewport.y = 0;
+        if (viewport.x + viewport.w > MAP_WIDTH) viewport.x = MAP_WIDTH - viewport.w;
+        if (viewport.y + viewport.h > MAP_HEIGHT) viewport.y = MAP_HEIGHT - viewport.h;
+
         // Render the game
-        // Clear the renderer
         SDL_RenderClear(pGame->pRenderer);
 
-        // Check the game state
         if (pGame->state == MENU && pGame->menuState == MAIN) {
-            // Render the menu image
             SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[0], NULL, &pGame->menu_rect);
         }
-        else if(pGame->state == MENU && pGame->menuState == SETTINGS){
+        else if (pGame->state == MENU && pGame->menuState == SETTINGS) {
             SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[1], NULL, &pGame->menu_rect);
         }
         if (pGame->state == ONGOING) {
-            // Draw the background image on the screen
-            SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, &pGame->background_rect);
-            // Draw the character on the screen
-            SDL_RenderCopyEx(pGame->pRenderer, pGame->pCharacter->tex, &pGame->pCharacter->source, &pGame->pCharacter->dest, 0, NULL, SDL_FLIP_NONE);
-            for (int i = 0; i < pGame->num_bullets; i++) {
-                moveBullet(pGame->bullets[i]); // Update bullet position
-                drawBullet(pGame->bullets[i], pGame->pRenderer); // Draw bullet
+            // Render only the portion of the map that falls within the viewport
+            SDL_Rect sourceRect = {viewport.x, viewport.y, viewport.w, viewport.h};
+            SDL_RenderCopy(pGame->pRenderer, pGame->background, &sourceRect, NULL);
 
-                // Check for collision between bullet and character
+            // Draw the character on the screen within the viewport
+            SDL_Rect characterDest = {
+                pGame->pCharacter->dest.x - viewport.x,
+                pGame->pCharacter->dest.y - viewport.y,
+                pGame->pCharacter->dest.w,
+                pGame->pCharacter->dest.h
+            };
+            SDL_RenderCopyEx(pGame->pRenderer, pGame->pCharacter->tex, &pGame->pCharacter->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
+
+            for (int i = 0; i < pGame->num_bullets; i++) {
+                moveBullet(pGame->bullets[i]);
+                drawBullet(pGame->bullets[i], pGame->pRenderer);
+
                 if (checkCollisionBulletCharacter(pGame->bullets[i], pGame->pCharacter)) {
-                    pGame->pCharacter->health--; // Decrease character's health
-                    destroyBullet(pGame->bullets[i]); // Destroy the bullet
+                    pGame->pCharacter->health--;
+                    destroyBullet(pGame->bullets[i]);
                     pGame->bullets[i] = NULL;
                 }
             }
-            renderHealthBar(pGame->pCharacter, pGame->pRenderer); // Render health bar
-            
-
+            renderHealthBar(pGame->pCharacter, pGame->pRenderer);
         }
 
-
-        // Update the screen
         SDL_RenderPresent(pGame->pRenderer);
-        // Delay to control frame rate
-        SDL_Delay(1000/60-15);
+        SDL_Delay(1000 / 60 - 15);
     }
 }
 
