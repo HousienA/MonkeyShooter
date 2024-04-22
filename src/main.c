@@ -265,13 +265,21 @@ void run(Game *pGame) {
                 moveBullet(pGame->bullets[i]);
                 drawBullet(pGame->bullets[i], pGame->pRenderer);
 
-                if (checkCollisionBulletCharacter(pGame->bullets[i], pGame->pCharacter)) {
+               if (checkCollisionBulletCharacter(pGame->bullets[i], pGame->pCharacter)) {
                     pGame->pCharacter->health--;
                     destroyBullet(pGame->bullets[i]);
                     pGame->bullets[i] = NULL;
+                    pGame->num_bullets--;
                 }
             }
             renderHealthBar(pGame->pCharacter, pGame->pRenderer);
+               // Check if character is dead
+            if (pGame->pCharacter->health <= 0) {
+                // Character is dead, reset the game
+                pGame->state = MENU;
+                pGame->menuState = MAIN;
+                pGame->pCharacter->health = 4; // Reset character health
+            }
         }
 
         SDL_RenderPresent(pGame->pRenderer);
