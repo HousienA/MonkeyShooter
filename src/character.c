@@ -7,8 +7,8 @@
 Character *createCharacter(SDL_Renderer *renderer)
 {
     Character *pCharacter = malloc(sizeof(Character));
-    pCharacter->dest.x = 240;
-    pCharacter->dest.y = 200;
+    pCharacter->dest.x = 280;
+    pCharacter->dest.y = 265;
     pCharacter->dest.w = 64;
     pCharacter->dest.h = 64;
 

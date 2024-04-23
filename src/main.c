@@ -98,7 +98,7 @@ int intializeWindow(Game *pGame) {
     }
 
     // Load the background image with error if it doens't work
-    pGame->background = IMG_LoadTexture(pGame->pRenderer, "resources/map1.png");
+    pGame->background = IMG_LoadTexture(pGame->pRenderer, "resources/map1_2.png");
     if (!pGame->background) {
         printf("Error loading background image: %s\n", IMG_GetError());
         return FALSE;
