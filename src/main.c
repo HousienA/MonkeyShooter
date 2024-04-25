@@ -98,7 +98,7 @@ int intializeWindow(Game *pGame) {
     }
 
     // Load the background image with error if it doens't work
-    pGame->background = IMG_LoadTexture(pGame->pRenderer, "resources/map1_2.png");
+    pGame->background = IMG_LoadTexture(pGame->pRenderer, "resources/map1.png");
     if (!pGame->background) {
         printf("Error loading background image: %s\n", IMG_GetError());
         return FALSE;
@@ -248,7 +248,7 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[1], NULL, &pGame->menu_rect);
         }
         if (pGame->state == ONGOING) {
-            // Render only the portion of the map that falls within the viewport
+           /* Render only the portion of the map that falls within the viewport
             SDL_Rect sourceRect = {viewport.x, viewport.y, viewport.w, viewport.h};
             SDL_RenderCopy(pGame->pRenderer, pGame->background, &sourceRect, NULL);
 
@@ -259,7 +259,12 @@ void run(Game *pGame) {
                 pGame->pCharacter->dest.w,
                 pGame->pCharacter->dest.h
             };
-            SDL_RenderCopyEx(pGame->pRenderer, pGame->pCharacter->tex, &pGame->pCharacter->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
+            SDL_RenderCopyEx(pGame->pRenderer, pGame->pCharacter->tex, &pGame->pCharacter->source, &characterDest, 0, NULL, SDL_FLIP_NONE);*/
+
+            // Draw the background image on the screen
+            SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, &pGame->background_rect);
+            // Draw the character on the screen
+            SDL_RenderCopyEx(pGame->pRenderer, pGame->pCharacter->tex, &pGame->pCharacter->source, &pGame->pCharacter->dest, 0, NULL, SDL_FLIP_NONE);
 
             for (int i = 0; i < pGame->num_bullets; i++) {
                 moveBullet(pGame->bullets[i]);
