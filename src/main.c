@@ -261,10 +261,10 @@ void run(Game *pGame) {
             };
             SDL_RenderCopyEx(pGame->pRenderer, pGame->pCharacter->tex, &pGame->pCharacter->source, &characterDest, 0, NULL, SDL_FLIP_NONE);*/
 
-            // Draw the background image on the screen
-            SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, &pGame->background_rect);
+            // Draw the background image on the screen 
+            SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, &pGame->background_rect); //ta bort denna kod om ni vill anvnda koden som är kommenteran ovanför
             // Draw the character on the screen
-            SDL_RenderCopyEx(pGame->pRenderer, pGame->pCharacter->tex, &pGame->pCharacter->source, &pGame->pCharacter->dest, 0, NULL, SDL_FLIP_NONE);
+            SDL_RenderCopyEx(pGame->pRenderer, pGame->pCharacter->tex, &pGame->pCharacter->source, &pGame->pCharacter->dest, 0, NULL, SDL_FLIP_NONE); //ta bort denna kod om ni vill anvnda koden som är kommenteran ovanför
 
             for (int i = 0; i < pGame->num_bullets; i++) {
                 moveBullet(pGame->bullets[i]);
