@@ -10,7 +10,7 @@ Bullet* createBullet(SDL_Renderer *renderer, float startX, float startY) {
         return NULL;
     }
     bullet->x = startX + 32;
-    bullet->y = startY + 32;
+    bullet->y = startY;
     bullet->dx = 0; 
     bullet->dy = 0;
 

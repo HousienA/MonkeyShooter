@@ -36,6 +36,7 @@ struct game{
     MenuState menuState;
     Bullet *bullets[1000];
     int num_bullets;
+    SDL_Rect viewport;
 }; typedef struct game Game;
 
 int intializeWindow(Game *pGame); //removed renderer argument
@@ -127,6 +128,12 @@ int intializeWindow(Game *pGame) {
     pGame->menu_rect = (SDL_Rect){0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
 
     pGame->state = MENU;
+    
+    //set viewport to be used in all functions
+    pGame->viewport.x = 0;
+    pGame->viewport.y = 0;
+    pGame->viewport.w = WINDOW_WIDTH;
+    pGame->viewport.h = WINDOW_HEIGHT;
 
     return TRUE;
 }
@@ -182,8 +189,8 @@ void handle_input(Game *pGame) {
             }
             if (SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK && !mouseClick && currentTime - lastShootTime >= 1000) {
                 // Shoot a bullet
-                float bulletStartX = pGame->pCharacter->dest.x + pGame->pCharacter->dest.w / 2; // Bullet starts from character's center horizontally
-                float bulletStartY = pGame->pCharacter->dest.y + pGame->pCharacter->dest.h / 2; // Bullet starts from character's center vertically
+                float bulletStartX = pGame->pCharacter->dest.x - pGame->viewport.x + pGame->pCharacter->dest.w / 2;
+                float bulletStartY = pGame->pCharacter->dest.y - pGame->viewport.y + pGame->pCharacter->dest.h / 2;
                 pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, bulletStartX, bulletStartY);
                 if (pGame->bullets[pGame->num_bullets]) {
                     // Calculate direction vector (normalized)
@@ -218,7 +225,7 @@ void run(Game *pGame) {
     SDL_Event event;
 
     //size of view in the window, aka zoomed camera on character
-    SDL_Rect viewport = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}; //viewport size to match window size
+    //SDL_Rect viewport = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}; //viewport size to match window size
 
 
     while (!close_requested) {
@@ -229,14 +236,14 @@ void run(Game *pGame) {
         handle_input(pGame);
 
         //set viewport position to follow the player (player in the middle of screen)
-        viewport.x = pGame->pCharacter->dest.x - (viewport.w / 2);
-        viewport.y = pGame->pCharacter->dest.y - (viewport.h / 2);
+        pGame->viewport.x = pGame->pCharacter->dest.x - (pGame->viewport.w / 2);
+        pGame->viewport.y = pGame->pCharacter->dest.y - (pGame->viewport.h / 2);
 
         //if player is near edge of map move the player and keep the viewport in bounds
-        if (viewport.x < 0) viewport.x = 0;
-        if (viewport.y < 0) viewport.y = 0;
-        if (viewport.x + viewport.w > MAP_WIDTH) viewport.x = MAP_WIDTH - viewport.w;
-        if (viewport.y + viewport.h > MAP_HEIGHT) viewport.y = MAP_HEIGHT - viewport.h;
+        if (pGame->viewport.x < 0) pGame->viewport.x = 0;
+        if (pGame->viewport.y < 0) pGame->viewport.y = 0;
+        if (pGame->viewport.x + pGame->viewport.w > MAP_WIDTH) pGame->viewport.x = MAP_WIDTH - pGame->viewport.w;
+        if (pGame->viewport.y + pGame->viewport.h > MAP_HEIGHT) pGame->viewport.y = MAP_HEIGHT - pGame->viewport.h;
 
         // Render the game
         SDL_RenderClear(pGame->pRenderer);
@@ -249,13 +256,13 @@ void run(Game *pGame) {
         }
         if (pGame->state == ONGOING) {
             // Render only the portion of the map that falls within the viewport
-            SDL_Rect sourceRect = {viewport.x, viewport.y, viewport.w, viewport.h};
+            SDL_Rect sourceRect = {pGame->viewport.x, pGame->viewport.y, pGame->viewport.w, pGame->viewport.h};
             SDL_RenderCopy(pGame->pRenderer, pGame->background, &sourceRect, NULL);
 
             // Draw the character on the screen within the viewport
             SDL_Rect characterDest = {
-                pGame->pCharacter->dest.x - viewport.x,
-                pGame->pCharacter->dest.y - viewport.y,
+                pGame->pCharacter->dest.x - pGame->viewport.x,
+                pGame->pCharacter->dest.y - pGame->viewport.y,
                 pGame->pCharacter->dest.w,
                 pGame->pCharacter->dest.h
             };
