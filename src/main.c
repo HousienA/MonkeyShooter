@@ -19,6 +19,11 @@ typedef enum GameState GameState;
 enum menuState{MAIN, SETTINGS, CONFIGURE, INGAME};
 typedef enum menuState MenuState; 
 
+//struct for joining players
+struct player{
+    Character *character;
+}; typedef struct player Player;
+
 //main struct for game
 struct menuTextures{
     SDL_Texture *SDLmTex[NR_OF_MENUTEXTURES];
@@ -27,7 +32,8 @@ struct menuTextures{
 struct game{
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
-    Character *pCharacter;
+    Character *pCharacter; // main player
+    Player players[MAX_PLAYERS - 1]; // joining players in array
     SDL_Texture *background;
     MenuTextures *menuTextures;
     SDL_Rect background_rect;
