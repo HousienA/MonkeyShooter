@@ -12,7 +12,6 @@ Character *createCharacter(SDL_Renderer *renderer)
     pCharacter->dest.w = 64;
     pCharacter->dest.h = 64;
 
-
     IMG_Init(IMG_INIT_PNG | IMG_INIT_PNG);
     SDL_Surface *image = IMG_Load("resources/Monkeyfront.png");
 
@@ -44,7 +43,6 @@ int isCharacterAlive(Character *pCharacter)
 {
     return pCharacter->health > 0;
 }
-
 
 void turnLeft(Character *pCharacter)
 {

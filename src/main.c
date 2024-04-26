@@ -5,13 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
 #define NR_OF_MENUTEXTURES 2
-
-
 
 enum GameState {MENU, ONGOING};
 typedef enum GameState GameState; 
@@ -206,17 +203,11 @@ void handle_input(Game *pGame) {
                 mouseClick = 0;
             };
 
-            //handle shooting
-            
-            
-
-
             break;
     }
      if(state[SDL_SCANCODE_ESCAPE]){
                 pGame->state = MENU;
                 pGame->menuState = MAIN;}
-    // Check for Escape key press in any MenuState
     
 }
 
@@ -226,7 +217,6 @@ void run(Game *pGame) {
 
     //size of view in the window, aka zoomed camera on character
     //SDL_Rect viewport = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}; //viewport size to match window size
-
 
     while (!close_requested) {
         while (SDL_PollEvent(&event)) {
