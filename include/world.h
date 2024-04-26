@@ -21,7 +21,7 @@ typedef struct {
 } Wall;
 
 //make struct accesible to other files. (can be modified as a pointed for easier reach later)
-extern Wall walls[4];
+extern Wall walls[23];
 
 //function to check collision with character
 bool checkCollision(Character *character, Wall *walls, int num_walls);

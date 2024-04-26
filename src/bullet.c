@@ -9,8 +9,8 @@ Bullet* createBullet(SDL_Renderer *renderer, float startX, float startY) {
         printf("Failed to allocate memory for bullet.\n");
         return NULL;
     }
-    bullet->x = startX + 32;
-    bullet->y = startY + 32;
+    bullet->x = startX;
+    bullet->y = startY;
     bullet->dx = 0; 
     bullet->dy = 0;
 
@@ -35,23 +35,25 @@ void drawBullet(Bullet *bullet, SDL_Renderer *renderer) {
 }
 
 
-bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter){
-    int bx1 = bullet->x;
-    int bx2 = bullet->x + BULLET_WIDTH;
-    int by1 = bullet->y;
-    int by2 = bullet->y + BULLET_HEIGHT;
+bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter) {
+    // Calculate the bounding box for the bullet
+    int bulletLeft = bullet->x;
+    int bulletRight = bullet->x + 5; // Assuming bullet width is 5
+    int bulletTop = bullet->y;
+    int bulletBottom = bullet->y + 5; // Assuming bullet height is 5
 
-    int cx1 = pCharacter->dest.x;
-    int cx2 = pCharacter->dest.x + CHARACTER_WIDTH;
-    int cy1 = pCharacter->dest.y;
-    int cy2 = pCharacter->dest.y + CHARACTER_HEIGHT;
+    // Calculate the bounding box for the character
+    int characterLeft = pCharacter->dest.x;
+    int characterRight = pCharacter->dest.x + CHARACTER_WIDTH;
+    int characterTop = pCharacter->dest.y;
+    int characterBottom = pCharacter->dest.y - CHARACTER_HEIGHT;
 
-    if (bx2 < cx1 || bx1 > cx2 || by2 < cy1 || by1 > cy2) {
-        // No collision
-        return false;
-    } else {
+    // Check for collision
+    if (bulletRight >= characterLeft && bulletLeft <= characterRight &&
+        bulletBottom >= characterTop && bulletTop <= characterBottom) {
         // Collision detected
         return true;
     }
-}
 
+    return false;
+}
