@@ -1,8 +1,8 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
-#define CHARACTER_HEIGHT 64
-#define CHARACTER_WIDTH 64
+#define CHARACTER_HEIGHT 46
+#define CHARACTER_WIDTH 46
 #define MAX_HEALTH 4
 
 #include <stdbool.h>
