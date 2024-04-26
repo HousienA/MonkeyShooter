@@ -16,6 +16,11 @@ typedef enum GameState GameState;
 enum menuState{MAIN, SETTINGS, CONFIGURE, INGAME};
 typedef enum menuState MenuState; 
 
+//struct for joining players
+struct player{
+    Character *character;
+}; typedef struct player Player;
+
 //main struct for game
 struct menuTextures{
     SDL_Texture *SDLmTex[NR_OF_MENUTEXTURES];
@@ -24,7 +29,8 @@ struct menuTextures{
 struct game{
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
-    Character *pCharacter;
+    Character *pCharacter; // main player
+    Player players[MAX_PLAYERS - 1]; // joining players in array
     SDL_Texture *background;
     MenuTextures *menuTextures;
     SDL_Rect background_rect;
@@ -173,7 +179,7 @@ void handle_input(Game *pGame) {
                 }
             }
             if (state[SDL_SCANCODE_W]) {
-                turnUpp(pGame->pCharacter);
+                turnUp(pGame->pCharacter);
                 if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
                     turnDown(pGame->pCharacter);
                 }
@@ -181,7 +187,7 @@ void handle_input(Game *pGame) {
             if (state[SDL_SCANCODE_S]) {
                 turnDown(pGame->pCharacter);
                 if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
-                    turnUpp(pGame->pCharacter);
+                    turnUp(pGame->pCharacter);
                 }
             }
             if (SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK && !mouseClick && currentTime - lastShootTime >= 1000) {
