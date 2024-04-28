@@ -17,9 +17,6 @@ enum menuState{MAIN, SETTINGS, CONFIGURE, INGAME};
 typedef enum menuState MenuState; 
 
 //struct for joining players
-struct player{
-    Character *character;
-}; typedef struct player Player;
 
 //main struct for game
 struct menuTextures{
@@ -30,7 +27,7 @@ struct game{
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
     Character *pCharacter; // main player
-    Player players[MAX_PLAYERS - 1]; // joining players in array
+    Character *pPlayers[MAX_PLAYERS]; // array of players to join
     SDL_Texture *background;
     MenuTextures *menuTextures;
     SDL_Rect background_rect;
@@ -39,6 +36,7 @@ struct game{
     MenuState menuState;
     Bullet *bullets[1000];
     int num_bullets;
+    int num_players; // track the number of players in the game
     SDL_Rect viewport;
 }; typedef struct game Game;
 
@@ -47,7 +45,8 @@ void process_input(Game *pGame,SDL_Event *pEvent);
 void run(Game *pGame);
 void close(Game *pGame);
 void renderHealthBar(Character *pCharacter, SDL_Renderer *renderer);
-
+void initializeCharacters(Game *pGame);
+void renderCharacters(Game *pGame);
 
 int main(int argv, char** args){
     Game g={0};
@@ -141,6 +140,40 @@ int intializeWindow(Game *pGame) {
     return TRUE;
 }
 
+void initializeCharacters(Game *pGame){
+    // Initialize main player character
+    pGame->pCharacter = createCharacter(pGame->pRenderer);
+    if(!pGame->pCharacter){
+        printf("Error creating main player character.\n");
+        return; // Exit if main player character creation fails
+    }
+
+    // Initialize additional player characters
+    for(int i = 0; i < MAX_PLAYERS - 1; i++){
+        pGame->pPlayers[i] = createCharacter(pGame->pRenderer);
+        if(!pGame->pPlayers[i]){
+            printf("Error creating player %d.\n", i + 1);
+            close(pGame);
+            // Optionally handle the error or continue
+        }
+    }
+    
+    // Set the number of players (including the main player)
+    pGame->num_players = 1;
+}
+
+void renderCharacters(Game *pGame){
+    for(int i = 0; i < pGame->num_players; i++){
+        Character *character = pGame->pPlayers[i];
+        SDL_Rect characterDest = {
+            character->dest.x - pGame->viewport.x,
+            character->dest.y = pGame->viewport.y,
+            character->dest.w,
+            character->dest.h
+        };
+        SDL_RenderCopyEx(pGame->pRenderer, character->tex, &character->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
+    }
+}
 
 
 
@@ -224,6 +257,9 @@ void run(Game *pGame) {
     //size of view in the window, aka zoomed camera on character
     //SDL_Rect viewport = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}; //viewport size to match window size
 
+    //Initialize players
+    initializeCharacters(pGame);
+
     while (!close_requested) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) close_requested = TRUE;
@@ -251,6 +287,9 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[1], NULL, &pGame->menu_rect);
         }
         if (pGame->state == ONGOING) {
+            //Render players
+            renderCharacters(pGame);
+
             // Render only the portion of the map that falls within the viewport
             SDL_Rect sourceRect = {pGame->viewport.x, pGame->viewport.y, pGame->viewport.w, pGame->viewport.h};
             SDL_RenderCopy(pGame->pRenderer, pGame->background, &sourceRect, NULL);
