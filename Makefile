@@ -4,17 +4,17 @@ LDFLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -mwindows -lm
 main: main.o character.o world.o bullet.o
 	gcc -o main main.o character.o world.o bullet.o $(LDFLAGS)
 
-main.o: ./src/main.c
-	gcc -c -I$(INCLUDE) ./src/main.c
+main.o: ./lib/src/main.c
+	gcc -c -I$(INCLUDE) ./lib/src/main.c
 
-character.o: ./src/character.c
-	gcc -c -I$(INCLUDE) ./src/character.c
+character.o: ./lib/src/character.c
+	gcc -c -I$(INCLUDE) ./lib/src/character.c
 
-world.o: ./src/world.c
-	gcc -c -I$(INCLUDE) ./src/world.c
+world.o: ./lib/src/world.c
+	gcc -c -I$(INCLUDE) ./lib/src/world.c
 
-bullet.o: ./src/bullet.c
-	gcc -c -I$(INCLUDE) ./src/bullet.c
+bullet.o: ./lib/src/bullet.c
+	gcc -c -I$(INCLUDE) ./lib/src/bullet.c
 
 
 clean:

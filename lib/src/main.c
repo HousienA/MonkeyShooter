@@ -76,8 +76,8 @@ int intializeWindow(Game *pGame) {
         pGame->menuTextures->SDLmTex[i] = NULL;
     }
     
-    strcpy(pGame->menuTextures->MenuTextureFiles[0], "resources/mMenu.png");
-    strcpy(pGame->menuTextures->MenuTextureFiles[1], "resources/IPconfigure.png");
+    strcpy(pGame->menuTextures->MenuTextureFiles[0], "/lib/resources/mMenu.png");
+    strcpy(pGame->menuTextures->MenuTextureFiles[1], "/lib/resources/IPconfigure.png");
 
     pGame->pWindow = SDL_CreateWindow(
         "MonkeyShooter",
@@ -101,7 +101,7 @@ int intializeWindow(Game *pGame) {
     }
 
     // Load the background image with error if it doens't work
-    pGame->background = IMG_LoadTexture(pGame->pRenderer, "resources/map1_2.png");
+    pGame->background = IMG_LoadTexture(pGame->pRenderer, "/lib/resources/map1_2.png");
     if (!pGame->background) {
         printf("Error loading background image: %s\n", IMG_GetError());
         return FALSE;
