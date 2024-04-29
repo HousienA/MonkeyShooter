@@ -17,7 +17,7 @@ Character *createCharacter(SDL_Renderer *renderer)
     pCharacter->dest.h = CHARACTER_HEIGHT;
 
     IMG_Init(IMG_INIT_PNG | IMG_INIT_PNG);
-    SDL_Surface *image = IMG_Load("/lib/resources/SpriteMonkey.png");
+    SDL_Surface *image = IMG_Load("../resources/SpriteMonkey.png");
 
     pCharacter->tex = SDL_CreateTextureFromSurface(renderer, image);
     SDL_FreeSurface(image);

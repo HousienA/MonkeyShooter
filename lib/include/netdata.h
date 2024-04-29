@@ -11,7 +11,7 @@ typedef enum clientCommand ClientCommand;
 
 struct clientData{
    ClientCommand command;
-   int playerNumber;
+   int playerNumber, slotsTaken[4];
 };
 typedef struct clientData ClientData;
 
@@ -32,8 +32,8 @@ typedef struct monkeyData MonkeyData;
 
 struct serverData{
    MonkeyData monkeys[MAX_MONKEYS];
-   int playerNr;
-   GameState gState
+   int playerNr, slotsTaken[4];
+   //GameState gState;
    
 };
 typedef struct serverData ServerData;

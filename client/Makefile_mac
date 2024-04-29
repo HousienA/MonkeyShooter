@@ -1,26 +1,27 @@
-CC=gcc-12 #Här måste ni välja er version, troligen
+CC=gcc #Här måste ni välja er version, troligen
 SRCDIR=./src
-INCDIR=./include
+INCDIR=../lib/include
+COMMONSRCDIR = ../lib/src
 
-INCLUDE = /opt/homebrew/include/SDL2
+INCLUDE = -I/opt/homebrew/include/
 LIBS = /opt/homebrew/lib
 CFLAGS = -g -I$(INCLUDE) -c
-LDFLAGS = -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lm
+LDFLAGS = -L/opt/homebrew/lib/ -lSDL2main -lSDL2 -lSDL2_image -lm 
 
 characterClient: main.o character.o world.o bullet.o
-	$(CC) -o characterClient main.o character.o world.o bullet.o $(LDFLAGS)
+	gcc -o characterClient main.o character.o world.o bullet.o $(LDFLAGS)
 
 main.o: $(SRCDIR)/main.c $(INCDIR)/netdata.h $(INCDIR)/character.h $(INCDIR)/world.h 
-	$(CC) $(CFLAGS) $(SRCDIR)/main.c
+	gcc -c $(INCLUDE) ./src/main.c
 
 character.o: $(COMMONSRCDIR)/character.c $(INCDIR)/netdata.h $(INCDIR)/character.h $(INCDIR)/bullet.h
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/character.c
+	gcc -c $(INCLUDE) $(COMMONSRCDIR)/character.c
 
 world.o: $(COMMONSRCDIR)/world.c $(INCDIR)/world.h
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/world.c
+	gcc -c $(INCLUDE) $(COMMONSRCDIR)/world.c
 
 bullet.o: $(COMMONSRCDIR)/bullet.c $(INCDIR)/bullet.h $(INCDIR)/netdata.h
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/bullet.c
+	gcc -c $(INCLUDE) $(COMMONSRCDIR)/bullet.c
 
 clean:
 	rm rocket
