@@ -8,10 +8,19 @@
 enum clientCommand{READY, UP, DOWN, LEFT, RIGHT, FIRE};
 typedef enum clientCommand ClientCommand;
 
-
+enum gameState {MENU, ONGOING };
+typedef enum gameState GameState;
+struct monkeyData{
+   float x, y, vx, vy;
+   int health;
+   
+};
+typedef struct monkeyData MonkeyData;
 struct clientData{
    ClientCommand command;
+   MonkeyData monkey;
    int playerNumber, slotsTaken[4];
+   int numberOfBullets;
 };
 typedef struct clientData ClientData;
 
@@ -22,19 +31,14 @@ struct bulletData{
 typedef struct bulletData BulletData;
 
 
-struct monkeyData{
-   float x, y, vx, vy;
-   int health;
-   BulletData bData;
-};
-typedef struct monkeyData MonkeyData;  
+  
 
 
 struct serverData{
    MonkeyData monkeys[MAX_MONKEYS];
-   int playerNr, slotsTaken[4];
-   //GameState gState;
-   
+   int slotsTaken[4], numberOfBullets;
+   GameState gState;
+   BulletData bData[1000];
 };
 typedef struct serverData ServerData;
 

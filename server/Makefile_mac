@@ -1,0 +1,28 @@
+CC=gcc #Här måste ni välja er version, troligen
+SRCDIR=./src
+INCDIR=../lib/include
+COMMONSRCDIR = ../lib/src
+
+INCLUDE = -I/opt/homebrew/include/
+LIBS = /opt/homebrew/lib
+CFLAGS = -g -I$(INCLUDE) -c
+LDFLAGS = -L/opt/homebrew/lib/ -lSDL2main -lSDL2 -lSDL2_image -lm 
+
+characterClient: main.o character.o world.o bullet.o
+	gcc -o characterClient main.o character.o world.o bullet.o $(LDFLAGS)
+
+main.o: $(SRCDIR)/main.c $(INCDIR)/netdata.h $(INCDIR)/character.h $(INCDIR)/world.h 
+	gcc -c $(INCLUDE) ./src/main.c
+
+character.o: $(COMMONSRCDIR)/character.c $(INCDIR)/netdata.h $(INCDIR)/character.h $(INCDIR)/bullet.h
+	gcc -c $(INCLUDE) $(COMMONSRCDIR)/character.c
+
+world.o: $(COMMONSRCDIR)/world.c $(INCDIR)/world.h
+	gcc -c $(INCLUDE) $(COMMONSRCDIR)/world.c
+
+bullet.o: $(COMMONSRCDIR)/bullet.c $(INCDIR)/bullet.h $(INCDIR)/netdata.h
+	gcc -c $(INCLUDE) $(COMMONSRCDIR)/bullet.c
+
+clean:
+	rm rocket
+	rm *.o
