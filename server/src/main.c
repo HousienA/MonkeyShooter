@@ -13,8 +13,6 @@
 
 #define NR_OF_MENUTEXTURES 2
 
-enum GameState {MENU, ONGOING};
-typedef enum GameState GameState; 
 
 enum menuState{MAIN, SETTINGS, CONFIGURE, INGAME};
 typedef enum menuState MenuState;
@@ -66,15 +64,9 @@ int initiate(Game *pGame){
         printf("Error: %s\n",SDL_GetError());
         return 0;
     }
-    if(TTF_Init()!=0){
-        printf("Error: %s\n",TTF_GetError());
-        SDL_Quit();
-        return 0;
-    }
     if (SDLNet_Init())
 	{
 		fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
-        TTF_Quit();
         SDL_Quit();
 		return 0;
 	}
@@ -162,7 +154,7 @@ void run(Game *pGame){
                 printf("Waiting for players\n");
                 if(SDL_PollEvent(&event) && event.type==SDL_QUIT) close_requested = 1;
                 if(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
-                    add(pGame->pPacket->address,pGame->playerNumber,&(pGame->num_players));
+                    add(pGame->pPacket->address,pGame->serverAddress,&(pGame->num_players));
                     if(pGame->num_players==MAX_MONKEYS) setUpGame(pGame);
                 }
                 break;
@@ -217,6 +209,7 @@ void executeCommand(Game *pGame,ClientData cData){
         case FIRE:
             //createBullet(pGame->pPlayers[cData.playerNumber],cData.monkey.);
             break;
+        default: break;
     }
 }
 
@@ -228,8 +221,7 @@ void close(Game *pGame){
     if(pGame->pPacket) SDLNet_FreePacket(pGame->pPacket);
 	if(pGame->pSocket) SDLNet_UDP_Close(pGame->pSocket);
 
-    SDLNet_Quit();
-    TTF_Quit();    
+    SDLNet_Quit();    
     SDL_Quit();
 }
 
