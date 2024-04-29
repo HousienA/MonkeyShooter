@@ -33,6 +33,8 @@ typedef struct monkeyData MonkeyData;
 struct serverData{
    MonkeyData monkeys[MAX_MONKEYS];
    int playerNr;
+   GameState gState
+   
 };
 typedef struct serverData ServerData;
 

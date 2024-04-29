@@ -10,6 +10,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_net.h>
 
+
 #define NR_OF_MENUTEXTURES 2
 
 enum GameState {MENU, ONGOING};
@@ -28,7 +29,7 @@ struct menuTextures{
 struct game{
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
-    Character *pPlayers[MAX_PLAYERS]; // main player 
+    Character *pPlayers[MAX_PLAYERS];  
     SDL_Texture *background;
     MenuTextures *menuTextures;
     SDL_Rect background_rect;
@@ -38,20 +39,19 @@ struct game{
     Bullet *bullets[1000];
     int num_bullets, num_players, playerNumber; // track the number of players in the game
     SDL_Rect viewport;
+
     UDPsocket pSocket;
-   IPaddress serverAddress;
-   UDPpacket *pPacket;
+    IPaddress serverAddress;
+    UDPpacket *pPacket;
 }; typedef struct game Game;
 
 int intializeWindow(Game *pGame); //removed renderer argument
-int intializeNet(Game *pGame);
 void process_input(Game *pGame,SDL_Event *pEvent);
 void run(Game *pGame);
 void close(Game *pGame);
-void renderHealthBar(Character *pPlayers[MAX_PLAYERS], SDL_Renderer *renderer);
+void renderHealthBar(Character *pPlayers[MAX_PLAYERS], SDL_Renderer *renderer, int playerNumber);
 void initializeCharacters(Game *pGame);
 void renderCharacters(Game *pGame);
-
 
 int main(int argv, char** args){
     Game g={0};
@@ -168,38 +168,10 @@ void renderCharacters(Game *pGame){
     }
 }
 
-int intializeNet(Game *pGame){
-   if(SDLNet_Init()){
-       printf("Error: %s\n", SDLNet_GetError());
-       SDL_Quit();
-       return FALSE;
-   }
-
-   if (!(pGame->pSocket = SDLNet_UDP_Open(0)))//0 means not a server
-   {
-       printf("SDLNet_UDP_Open: %s\n", SDLNet_GetError());
-       return 0;
-   }
-   if (SDLNet_ResolveHost(&(pGame->serverAddress), "127.0.0.1", 2000))
-   {
-       printf("SDLNet_ResolveHost(127.0.0.1 2000): %s\n", SDLNet_GetError());
-       return 0;
-   }
-   if (!(pGame->pPacket = SDLNet_AllocPacket(512)))
-   {
-       printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
-       return 0;
-   }
-   pGame->pPacket->address.host = pGame->serverAddress.host;
-   pGame->pPacket->address.port = pGame->serverAddress.port;
-}
-
-
 
 
 //function to run the game with events linked to the main struct
 void handle_input(Game *pGame) {
-    ClientData cData;
     static Uint32 lastShootTime = 0; // Variable to store the time of the last shot
     Uint32 currentTime = SDL_GetTicks(); // Get the current time in milliseconds
     int close_requested = FALSE;	
@@ -305,12 +277,13 @@ void run(Game *pGame) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) close_requested = TRUE;
         }
-
+        updateWithServerData(pGame);
+        
         handle_input(pGame);
 
         //set viewport position to follow the player (player in the middle of screen)
-        pGame->viewport.x = pGame->pPlayers[MAX_PLAYERS]->dest.x - (pGame->viewport.w / 2);
-        pGame->viewport.y = pGame->pPlayers[MAX_PLAYERS]->dest.y - (pGame->viewport.h / 2);
+        pGame->viewport.x = pGame->pPlayers[pGame->playerNumber]->dest.x - (pGame->viewport.w / 2);
+        pGame->viewport.y = pGame->pPlayers[pGame->playerNumber]->dest.y - (pGame->viewport.h / 2);
 
         //if player is near edge of map move the player and keep the viewport in bounds
         if (pGame->viewport.x < 0) pGame->viewport.x = 0;
@@ -337,31 +310,31 @@ void run(Game *pGame) {
 
             // Draw the character on the screen within the viewport
             SDL_Rect characterDest = {
-                pGame->pPlayers[MAX_PLAYERS]->dest.x - pGame->viewport.x,
-                pGame->pPlayers[MAX_PLAYERS]->dest.y - pGame->viewport.y,
-                pGame->pPlayers[MAX_PLAYERS]->dest.w,
-                pGame->pPlayers[MAX_PLAYERS]->dest.h
+                pGame->pPlayers[pGame->playerNumber]->dest.x - pGame->viewport.x,
+                pGame->pPlayers[pGame->playerNumber]->dest.y - pGame->viewport.y,
+                pGame->pPlayers[pGame->playerNumber]->dest.w,
+                pGame->pPlayers[pGame->playerNumber]->dest.h
             };
-            SDL_RenderCopyEx(pGame->pRenderer, pGame->pPlayers[MAX_PLAYERS]->tex, &pGame->pPlayers[MAX_PLAYERS]->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
+            SDL_RenderCopyEx(pGame->pRenderer, pGame->pPlayers[pGame->playerNumber]->tex, &pGame->pPlayers[pGame->playerNumber]->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
 
             for (int i = 0; i < pGame->num_bullets; i++) {
                 moveBullet(pGame->bullets[i]);
                 drawBullet(pGame->bullets[i], pGame->pRenderer);
 
-               if (checkCollisionBulletCharacter(pGame->bullets[i], pGame->pPlayers[MAX_PLAYERS])) {
-                    pGame->pPlayers[MAX_PLAYERS]->health--;
+               if (checkCollisionBulletCharacter(pGame->bullets[i], pGame->pPlayers[pGame->playerNumber])) {
+                    pGame->pPlayers[pGame->playerNumber]->health--;
                     destroyBullet(pGame->bullets[i]);
                     pGame->bullets[i] = NULL;
                     pGame->num_bullets--;
                 }
             }
-            renderHealthBar(pGame->pPlayers[MAX_PLAYERS], pGame->pRenderer);
+            renderHealthBar(pGame->pPlayers, pGame->pRenderer, pGame->playerNumber);
                // Check if character is dead
-            if (pGame->pPlayers[MAX_PLAYERS]->health <= 0) {
+            if (pGame->pPlayers[pGame->playerNumber]->health <= 0) {
                 // Character is dead, reset the game
                 pGame->state = MENU;
                 pGame->menuState = MAIN;
-                pGame->pPlayers[MAX_PLAYERS]->health = 4; // Reset character health
+                pGame->pPlayers[pGame->playerNumber]->health = 4; // Reset character health
             }
         }
 
@@ -386,12 +359,22 @@ void close(Game *pGame){
     SDL_Quit();
 }
 
-void renderHealthBar(Character *pPlayers[MAX_PLAYERS], SDL_Renderer *renderer)
+void renderHealthBar(Character *pPlayers[MAX_PLAYERS], SDL_Renderer *renderer, int playerNumber)
 {
     SDL_Rect healthBar = {20, 20, 100, 20}; // Health bar position and size
-    SDL_Rect remainingHealth = {20, 20, pPlayers[MAX_PLAYERS]->health * 25, 20}; // Health bar remaining size
+    SDL_Rect remainingHealth = {20, 20, pPlayers[playerNumber]->health * 25, 20}; // Health bar remaining size
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red color
     SDL_RenderFillRect(renderer, &healthBar); // Draw the background of health bar
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Green color
     SDL_RenderFillRect(renderer, &remainingHealth); // Draw the remaining health
+}
+
+void updateWithServerData(Game *pGame){
+    ServerData sData;
+    memcpy(&sData, pGame->pPacket->data, sizeof(ServerData));
+    pGame->playerNumber = sData.playerNr;
+    pGame->state = sData.gState;
+    for(int i=0;i<MAX_PLAYERS;i++){
+        updateRocketWithRecievedData(pGame->pPlayers[i],&(sData.monkeys[i]));
+    }
 }
