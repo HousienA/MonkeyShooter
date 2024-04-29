@@ -43,6 +43,7 @@ struct game{
 }; typedef struct game Game;
 
 int intializeWindow(Game *pGame); //removed renderer argument
+int initializeNetwork(Game *pGame);
 void process_input(Game *pGame,SDL_Event *pEvent);
 void run(Game *pGame);
 void close(Game *pGame);
@@ -55,11 +56,37 @@ void updateMonkeysWithRecievedData(Character *pPlayers, MonkeyData *monkeys);
 
 int main(int argv, char** args){
     Game g={0};
-    if (!intializeWindow(&g)) return TRUE;      // if initializeWindow doesn't work end the program
+    if (!intializeWindow(&g)) return TRUE; 
+    if(!initializeNetwork(&g))return TRUE;     // if initializeWindow doesn't work end the program
     run(&g);            //or run and then close it after quitting
     close(&g);
 
     return 0;
+}
+int initializeNetwork(Game *pGame){
+    if (SDLNet_Init())
+	{
+		printf("SDLNet_Init: %s\n", SDLNet_GetError());
+		return 0;
+	}
+     if (!(pGame->pSocket = SDLNet_UDP_Open(0)))//0 means not a server
+	{
+		printf("SDLNet_UDP_Open: %s\n", SDLNet_GetError());
+		return 0;
+	}
+	if (SDLNet_ResolveHost(&(pGame->serverAddress), "127.0.0.1", 2000))
+	{
+		printf("SDLNet_ResolveHost(127.0.0.1 2000): %s\n", SDLNet_GetError());
+		return 0;
+	}
+    if (!(pGame->pPacket = SDLNet_AllocPacket(512)))
+	{
+		printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+		return 0;
+	}
+    pGame->pPacket->address.host = pGame->serverAddress.host;
+    pGame->pPacket->address.port = pGame->serverAddress.port;
+    return 1;
 }
 
 //start the program and call needed from main struct
