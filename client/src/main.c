@@ -2,11 +2,13 @@
 #include "../../lib/include/character.h"
 #include "../../lib/include/world.h"
 #include "../../lib/include/bullet.h"
+#include "../../lib/include/netdata.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_net.h>
 
 #define NR_OF_MENUTEXTURES 2
 
@@ -38,15 +40,20 @@ struct game{
     int num_bullets;
     int num_players; // track the number of players in the game
     SDL_Rect viewport;
+    UDPsocket pSocket;
+   IPaddress serverAddress;
+   UDPpacket *pPacket;
 }; typedef struct game Game;
 
 int intializeWindow(Game *pGame); //removed renderer argument
+int intializeNet(Game *pGame);
 void process_input(Game *pGame,SDL_Event *pEvent);
 void run(Game *pGame);
 void close(Game *pGame);
 void renderHealthBar(Character *pCharacter, SDL_Renderer *renderer);
 void initializeCharacters(Game *pGame);
 void renderCharacters(Game *pGame);
+
 
 int main(int argv, char** args){
     Game g={0};
@@ -175,10 +182,38 @@ void renderCharacters(Game *pGame){
     }
 }
 
+int intializeNet(Game *pGame){
+   if(SDLNet_Init()){
+       printf("Error: %s\n", SDLNet_GetError());
+       SDL_Quit();
+       return FALSE;
+   }
+
+   if (!(pGame->pSocket = SDLNet_UDP_Open(0)))//0 means not a server
+   {
+       printf("SDLNet_UDP_Open: %s\n", SDLNet_GetError());
+       return 0;
+   }
+   if (SDLNet_ResolveHost(&(pGame->serverAddress), "127.0.0.1", 2000))
+   {
+       printf("SDLNet_ResolveHost(127.0.0.1 2000): %s\n", SDLNet_GetError());
+       return 0;
+   }
+   if (!(pGame->pPacket = SDLNet_AllocPacket(512)))
+   {
+       printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
+       return 0;
+   }
+   pGame->pPacket->address.host = pGame->serverAddress.host;
+   pGame->pPacket->address.port = pGame->serverAddress.port;
+}
+
+
 
 
 //function to run the game with events linked to the main struct
 void handle_input(Game *pGame) {
+    ClientData cData;
     static Uint32 lastShootTime = 0; // Variable to store the time of the last shot
     Uint32 currentTime = SDL_GetTicks(); // Get the current time in milliseconds
     int close_requested = FALSE;	
