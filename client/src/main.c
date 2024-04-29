@@ -34,7 +34,7 @@ struct game{
     GameState state;
     MenuState menuState;
     Bullet *bullets[1000];
-    int num_bullets, num_players, playerNumber, slotsTaken[4]; // track the number of players in the game
+    int num_bullets, num_players, playerNumber, slotsTaken[MAX_PLAYERS]; // track the number of players in the game
     SDL_Rect viewport;
 
     UDPsocket pSocket;
@@ -63,6 +63,7 @@ int main(int argv, char** args){
 
     return 0;
 }
+
 int initializeNetwork(Game *pGame){
     if (SDLNet_Init())
 	{
@@ -213,7 +214,13 @@ void handle_input(Game *pGame) {
         case MENU:
             button = SDL_GetMouseState(&mouseX, &mouseY);
 
-            if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)) pGame->state = ONGOING;  
+            if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){  //pGame->state = ONGOING;  
+                    cData.command=READY;
+                    cData.playerNumber=-1;
+                    memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
+		            pGame->pPacket->len = sizeof(ClientData);
+                    SDLNet_UDP_Send(pGame->pSocket, -1,pGame->pPacket);
+            }
             else if(mouseX>270 && mouseX<550 && mouseY>400 && mouseY<443 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
             else if(mouseX>288 && mouseX<533 && mouseY>497 && mouseY<541 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = CONFIGURE;
             else if(mouseX>320&& mouseX<499 && mouseY>593 && mouseY<637 &&(button && SDL_BUTTON_LMASK)) close(pGame); // Exit the game
