@@ -1,5 +1,6 @@
 INCLUDE = C:\msys64\mingw64\include
 LDFLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -mwindows -lm
+CFLAGS = -Wall
 
 main: main.o character.o world.o bullet.o
 	gcc -o main main.o character.o world.o bullet.o $(LDFLAGS)
