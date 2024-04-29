@@ -28,8 +28,7 @@ struct menuTextures{
 struct game{
     SDL_Window *pWindow;
     SDL_Renderer *pRenderer;
-    Character *pCharacter; // main player
-    Character *pPlayers[MAX_PLAYERS]; // array of players to join
+    Character *pPlayers[MAX_PLAYERS]; // main player 
     SDL_Texture *background;
     MenuTextures *menuTextures;
     SDL_Rect background_rect;
@@ -37,8 +36,7 @@ struct game{
     GameState state;
     MenuState menuState;
     Bullet *bullets[1000];
-    int num_bullets;
-    int num_players; // track the number of players in the game
+    int num_bullets, num_players, playerNumber; // track the number of players in the game
     SDL_Rect viewport;
     UDPsocket pSocket;
    IPaddress serverAddress;
@@ -50,7 +48,7 @@ int intializeNet(Game *pGame);
 void process_input(Game *pGame,SDL_Event *pEvent);
 void run(Game *pGame);
 void close(Game *pGame);
-void renderHealthBar(Character *pCharacter, SDL_Renderer *renderer);
+void renderHealthBar(Character *pPlayers[MAX_PLAYERS], SDL_Renderer *renderer);
 void initializeCharacters(Game *pGame);
 void renderCharacters(Game *pGame);
 
@@ -122,13 +120,7 @@ int intializeWindow(Game *pGame) {
             return FALSE;
         }
     }
-    pGame->pCharacter = createCharacter(pGame->pRenderer);
 
-    if (!pGame->pCharacter) {
-        printf("Error: %s\n", SDL_GetError());
-        close(pGame);
-        return FALSE;
-    }
 
     // Set the position and size of the background image
     pGame->background_rect = (SDL_Rect){0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
@@ -148,15 +140,9 @@ int intializeWindow(Game *pGame) {
 }
 
 void initializeCharacters(Game *pGame){
-    // Initialize main player character
-    pGame->pCharacter = createCharacter(pGame->pRenderer);
-    if(!pGame->pCharacter){
-        printf("Error creating main player character.\n");
-        return; // Exit if main player character creation fails
-    }
 
     // Initialize additional player characters
-    for(int i = 0; i < MAX_PLAYERS - 1; i++){
+    for(int i = 0; i < MAX_PLAYERS; i++){
         pGame->pPlayers[i] = createCharacter(pGame->pRenderer);
         if(!pGame->pPlayers[i]){
             printf("Error creating player %d.\n", i + 1);
@@ -230,38 +216,58 @@ void handle_input(Game *pGame) {
             else if(mouseX>270 && mouseX<550 && mouseY>400 && mouseY<443 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
             else if(mouseX>288 && mouseX<533 && mouseY>497 && mouseY<541 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = CONFIGURE;
             else if(mouseX>320&& mouseX<499 && mouseY>593 && mouseY<637 &&(button && SDL_BUTTON_LMASK)) close(pGame); // Exit the game
+        
+            switch(pGame->menuState){
+                case SETTINGS:
+                    if(state[SDL_SCANCODE_1]){
+                        pGame->playerNumber = 1;
+                    }
+                    else if(state[SDL_SCANCODE_2]){
+                        pGame->playerNumber = 2;
+                    }
+                    else if(state[SDL_SCANCODE_3]){
+                        pGame->playerNumber = 3;
+                    }
+                    else if(state[SDL_SCANCODE_4]){
+                        pGame->playerNumber = 4;
+                    }
+                    break;
+                
+                default:
+                    break;
+            }
 
             break;
 
         case ONGOING:
             if (state[SDL_SCANCODE_A]) {
-                turnLeft(pGame->pCharacter);
-                if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
-                    turnRight(pGame->pCharacter);
+                turnLeft(pGame->pPlayers[ pGame->playerNumber]);
+                if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
+                    turnRight(pGame->pPlayers[MAX_PLAYERS]);
                 }
             }
             if (state[SDL_SCANCODE_D]) {
-                turnRight(pGame->pCharacter);
-                if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
-                    turnLeft(pGame->pCharacter);
+                turnRight(pGame->pPlayers[pGame->playerNumber]);
+                if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
+                    turnLeft(pGame->pPlayers[pGame->playerNumber]);
                 }
             }
             if (state[SDL_SCANCODE_W]) {
-                turnUp(pGame->pCharacter);
-                if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
-                    turnDown(pGame->pCharacter);
+                turnUp(pGame->pPlayers[pGame->playerNumber]);
+                if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
+                    turnDown(pGame->pPlayers[pGame->playerNumber]);
                 }
             }
             if (state[SDL_SCANCODE_S]) {
-                turnDown(pGame->pCharacter);
-                if (checkCollision(pGame->pCharacter, walls, sizeof(walls) / sizeof(walls[0]))) {
-                    turnUp(pGame->pCharacter);
+                turnDown(pGame->pPlayers[pGame->playerNumber]);
+                if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
+                    turnUp(pGame->pPlayers[pGame->playerNumber]);
                 }
             }
             if (SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK && !mouseClick && currentTime - lastShootTime >= 1000) {
                 // Shoot a bullet with location in respect to viewport 
-                float bulletStartX = pGame->pCharacter->dest.x - pGame->viewport.x + pGame->pCharacter->dest.w / 2;
-                float bulletStartY = pGame->pCharacter->dest.y - pGame->viewport.y + pGame->pCharacter->dest.h / 2;
+                float bulletStartX = pGame->pPlayers[pGame->playerNumber]->dest.x - pGame->viewport.x + pGame->pPlayers[MAX_PLAYERS]->dest.w / 2;
+                float bulletStartY = pGame->pPlayers[pGame->playerNumber]->dest.y - pGame->viewport.y + pGame->pPlayers[MAX_PLAYERS]->dest.h / 2;
                 pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, bulletStartX, bulletStartY);
                 if (pGame->bullets[pGame->num_bullets]) {
                     // Calculate direction vector (normalized)
@@ -303,8 +309,8 @@ void run(Game *pGame) {
         handle_input(pGame);
 
         //set viewport position to follow the player (player in the middle of screen)
-        pGame->viewport.x = pGame->pCharacter->dest.x - (pGame->viewport.w / 2);
-        pGame->viewport.y = pGame->pCharacter->dest.y - (pGame->viewport.h / 2);
+        pGame->viewport.x = pGame->pPlayers[MAX_PLAYERS]->dest.x - (pGame->viewport.w / 2);
+        pGame->viewport.y = pGame->pPlayers[MAX_PLAYERS]->dest.y - (pGame->viewport.h / 2);
 
         //if player is near edge of map move the player and keep the viewport in bounds
         if (pGame->viewport.x < 0) pGame->viewport.x = 0;
@@ -331,31 +337,31 @@ void run(Game *pGame) {
 
             // Draw the character on the screen within the viewport
             SDL_Rect characterDest = {
-                pGame->pCharacter->dest.x - pGame->viewport.x,
-                pGame->pCharacter->dest.y - pGame->viewport.y,
-                pGame->pCharacter->dest.w,
-                pGame->pCharacter->dest.h
+                pGame->pPlayers[MAX_PLAYERS]->dest.x - pGame->viewport.x,
+                pGame->pPlayers[MAX_PLAYERS]->dest.y - pGame->viewport.y,
+                pGame->pPlayers[MAX_PLAYERS]->dest.w,
+                pGame->pPlayers[MAX_PLAYERS]->dest.h
             };
-            SDL_RenderCopyEx(pGame->pRenderer, pGame->pCharacter->tex, &pGame->pCharacter->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
+            SDL_RenderCopyEx(pGame->pRenderer, pGame->pPlayers[MAX_PLAYERS]->tex, &pGame->pPlayers[MAX_PLAYERS]->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
 
             for (int i = 0; i < pGame->num_bullets; i++) {
                 moveBullet(pGame->bullets[i]);
                 drawBullet(pGame->bullets[i], pGame->pRenderer);
 
-               if (checkCollisionBulletCharacter(pGame->bullets[i], pGame->pCharacter)) {
-                    pGame->pCharacter->health--;
+               if (checkCollisionBulletCharacter(pGame->bullets[i], pGame->pPlayers[MAX_PLAYERS])) {
+                    pGame->pPlayers[MAX_PLAYERS]->health--;
                     destroyBullet(pGame->bullets[i]);
                     pGame->bullets[i] = NULL;
                     pGame->num_bullets--;
                 }
             }
-            renderHealthBar(pGame->pCharacter, pGame->pRenderer);
+            renderHealthBar(pGame->pPlayers[MAX_PLAYERS], pGame->pRenderer);
                // Check if character is dead
-            if (pGame->pCharacter->health <= 0) {
+            if (pGame->pPlayers[MAX_PLAYERS]->health <= 0) {
                 // Character is dead, reset the game
                 pGame->state = MENU;
                 pGame->menuState = MAIN;
-                pGame->pCharacter->health = 4; // Reset character health
+                pGame->pPlayers[MAX_PLAYERS]->health = 4; // Reset character health
             }
         }
 
@@ -365,7 +371,11 @@ void run(Game *pGame) {
 }
 
 void close(Game *pGame){
-    if(pGame->pCharacter) destroyCharacter(pGame->pCharacter);
+    for(int i = 0; i < MAX_PLAYERS; i++){
+         destroyCharacter(pGame->pPlayers[i]);
+        
+    }
+    
     if(pGame->background) SDL_DestroyTexture(pGame->background); // Free the background texture
     for (int i = 0; i < NR_OF_MENUTEXTURES; i++){
         if(pGame->menuTextures->SDLmTex[i]) SDL_DestroyTexture(pGame->menuTextures->SDLmTex[i]);
@@ -376,10 +386,10 @@ void close(Game *pGame){
     SDL_Quit();
 }
 
-void renderHealthBar(Character *pCharacter, SDL_Renderer *renderer)
+void renderHealthBar(Character *pPlayers[MAX_PLAYERS], SDL_Renderer *renderer)
 {
     SDL_Rect healthBar = {20, 20, 100, 20}; // Health bar position and size
-    SDL_Rect remainingHealth = {20, 20, pCharacter->health * 25, 20}; // Health bar remaining size
+    SDL_Rect remainingHealth = {20, 20, pPlayers[MAX_PLAYERS]->health * 25, 20}; // Health bar remaining size
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red color
     SDL_RenderFillRect(renderer, &healthBar); // Draw the background of health bar
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Green color
