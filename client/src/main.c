@@ -214,26 +214,34 @@ void handle_input(Game *pGame) {
         case ONGOING:
             if (state[SDL_SCANCODE_A]) {
                 turnLeft(pGame->pPlayers[ pGame->playerNumber]);
+                cData.command = LEFT;
                 if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
                     turnRight(pGame->pPlayers[MAX_PLAYERS]);
+                    cData.command = RIGHT;
                 }
             }
             if (state[SDL_SCANCODE_D]) {
                 turnRight(pGame->pPlayers[pGame->playerNumber]);
+                cData.command = RIGHT;
                 if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
                     turnLeft(pGame->pPlayers[pGame->playerNumber]);
+                    cData.command = LEFT;
                 }
             }
             if (state[SDL_SCANCODE_W]) {
                 turnUp(pGame->pPlayers[pGame->playerNumber]);
+                cData.command = UP;
                 if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
                     turnDown(pGame->pPlayers[pGame->playerNumber]);
+                    cData.command = DOWN;
                 }
             }
             if (state[SDL_SCANCODE_S]) {
                 turnDown(pGame->pPlayers[pGame->playerNumber]);
+                cData.command = DOWN;
                 if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
                     turnUp(pGame->pPlayers[pGame->playerNumber]);
+                    cData.command = UP;
                 }
             }
             if (SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK && !mouseClick && currentTime - lastShootTime >= 1000) {
@@ -241,6 +249,7 @@ void handle_input(Game *pGame) {
                 float bulletStartX = pGame->pPlayers[pGame->playerNumber]->dest.x - pGame->viewport.x + pGame->pPlayers[MAX_PLAYERS]->dest.w / 2;
                 float bulletStartY = pGame->pPlayers[pGame->playerNumber]->dest.y - pGame->viewport.y + pGame->pPlayers[MAX_PLAYERS]->dest.h / 2;
                 pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, bulletStartX, bulletStartY);
+                cData.command = FIRE;
                 if (pGame->bullets[pGame->num_bullets]) {
                     // Calculate direction vector (normalized)
                     float dx = x - bulletStartX;
@@ -266,9 +275,6 @@ void handle_input(Game *pGame) {
 void run(Game *pGame) {
     int close_requested = 0;
     SDL_Event event;
-
-    //size of view in the window, aka zoomed camera on character
-    //SDL_Rect viewport = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}; //viewport size to match window size
 
     //Initialize players
     initializeCharacters(pGame);
