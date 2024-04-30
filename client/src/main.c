@@ -310,8 +310,8 @@ void handle_input(Game *pGame) {
                 pGame->state = MENU;
                 pGame->menuState = MAIN;}
     
-    //cData.monkey.x = pGame->pPlayers[pGame->playerNumber]->dest.x;
-    //cData.monkey.y = pGame->pPlayers[pGame->playerNumber]->dest.y;
+    cData.monkey.x = pGame->pPlayers[pGame->playerNumber]->dest.x;
+    cData.monkey.y = pGame->pPlayers[pGame->playerNumber]->dest.y;
     /*for(int i = pGame->num_bullets-1; i < pGame->num_bullets; i++){
         cData.monkey.bData[i].x = pGame->bullets[i]->x;
         cData.monkey.bData[i].y = pGame->bullets[i]->y;
@@ -449,6 +449,6 @@ void updateWithServerData(Game *pGame){
 
 void updateMonkeysWithRecievedData(Character *pPlayers, MonkeyData *monkeys){
     pPlayers->health = monkeys->health;
-    pPlayers->dest.x = monkeys->vx;
-    pPlayers->dest.y = monkeys->vy;
+    pPlayers->dest.x = monkeys->x;
+    pPlayers->dest.y = monkeys->y;
 }

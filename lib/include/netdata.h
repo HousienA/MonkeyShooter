@@ -12,7 +12,7 @@ typedef enum clientCommand ClientCommand;
 enum gameState {MENU, ONGOING };
 typedef enum gameState GameState;
 struct monkeyData{
-   float x, y, vx, vy;
+   float x, y;
    int health;
    
 };

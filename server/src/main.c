@@ -143,11 +143,10 @@ void acceptClients(Game *pGame){
             // Add the player
             add(pGame->pPacket->address, pGame->serverAddress, &(pGame->num_players));
             printf("A new player has been added. Total players: %d\n", pGame->num_players);
-        } else {
-            // No incoming packets, break out of the loop
-            break;
-        }
+        } 
+        
     }
+    if(pGame->num_players==MAX_MONKEYS) setUpGame(pGame);
 }
 
 
@@ -157,7 +156,6 @@ void run(Game *pGame){
     ClientData cData;
 
     while(!close_requested){
-        acceptClients(pGame);
 
         switch (pGame->state)
         {
@@ -178,8 +176,8 @@ void run(Game *pGame){
                 
                 for(int i=0;i<MAX_PLAYERS;i++)
                     pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
-                    pGame->pPlayers[cData.playerNumber]->dest.x = cData.monkey.vx;
-                    pGame->pPlayers[cData.playerNumber]->dest.y = cData.monkey.vy;
+                    pGame->pPlayers[cData.playerNumber]->dest.x = cData.monkey.x;
+                    pGame->pPlayers[cData.playerNumber]->dest.y = cData.monkey.y;
                 
                 for(int i=0;i<MAX_PLAYERS;i++)
                     renderCharacter(pGame->pPlayers[i], pGame->pRenderer);
