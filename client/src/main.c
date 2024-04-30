@@ -429,7 +429,7 @@ void sendData(Game *pGame, ClientData *cData){
     
     cData->playerNumber = pGame->playerNumber;
     
-    memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
+    memcpy(pGame->pPacket->data, cData, sizeof(ClientData));
     SDLNet_UDP_Send(pGame->pSocket, -1, pGame->pPacket);
 
 }

@@ -10,6 +10,7 @@
 #include "../../lib/include/netdata.h"
 #include "../../lib/include/character.h"
 #include "../../lib/include/bullet.h"
+#include "../../lib/include/text.h"
 
 #define NR_OF_MENUTEXTURES 2
 
@@ -38,6 +39,7 @@ struct game{
     UDPsocket pSocket;
     IPaddress serverAddress[MAX_PLAYERS];
     UDPpacket *pPacket;
+    TTF_Font *font;
 }; typedef struct game Game;
 
 int initiate(Game *pGame);
@@ -70,6 +72,22 @@ int initiate(Game *pGame){
         SDL_Quit();
 		return 0;
 	}
+
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+    printf("SDL_Init Error: %s\n", SDL_GetError());
+    return 1;
+    }
+
+    if (TTF_Init() == -1) {
+    printf("TTF_Init Error: %s\n", TTF_GetError());
+    return 1;
+    }
+
+    pGame->font = TTF_OpenFont("../lib/resources/arial.ttf", 60);
+    if (!pGame->font) {
+        printf("TTF_OpenFont: %s\n", TTF_GetError());
+        return 0;
+    }
 
     pGame->pWindow = SDL_CreateWindow("Monkey Server",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,WINDOW_WIDTH,WINDOW_HEIGHT,0);
     if(!pGame->pWindow){
@@ -151,7 +169,11 @@ void run(Game *pGame){
                 sendGameData(pGame);
                 if(pGame->num_players==MAX_PLAYERS) pGame->num_players = 0;*/
             case MENU:
-                printf("Waiting for players\n");
+                Text *waitingText = createText(pGame->pRenderer, 255, 255, 255, pGame->font, "Waiting for Players", 400, 400);
+                drawText(waitingText);
+                SDL_RenderPresent(pGame->pRenderer);
+                destroyText(waitingText);
+                //printf("Waiting for players\n");
                 if(SDL_PollEvent(&event) && event.type==SDL_QUIT) close_requested = 1;
                 if(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
                     add(pGame->pPacket->address,pGame->serverAddress,&(pGame->num_players));
@@ -221,6 +243,8 @@ void close(Game *pGame){
     if(pGame->pPacket) SDLNet_FreePacket(pGame->pPacket);
 	if(pGame->pSocket) SDLNet_UDP_Close(pGame->pSocket);
 
+    TTF_CloseFont(pGame->font);
+    TTF_Quit();
     SDLNet_Quit();    
     SDL_Quit();
 }
