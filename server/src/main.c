@@ -160,6 +160,24 @@ void run(Game *pGame){
                 
                 for(int i=0;i<MAX_PLAYERS;i++)
                     renderCharacter(pGame->pPlayers[i], pGame->pRenderer);
+
+                //go through and check if all players are dead
+                int allPlayersDead = 1;
+                for(int i = 0; i < MAX_PLAYERS; i++) {
+                    if(pGame->pPlayers[i]->health > 0) {
+                        allPlayersDead = 0;
+                        break;
+                    }
+                }
+
+                //if all players dead, got to menu and reset health
+                if(allPlayersDead) {
+                    pGame->state = MENU;
+                    pGame->num_players = 0;
+                    for(int i = 0; i < MAX_PLAYERS; i++) {
+                        pGame->pPlayers[i]->health = MAX_HEALTH; // Reset player health
+                    }
+                }
                 
                 SDL_RenderPresent(pGame->pRenderer);
                 
