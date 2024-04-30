@@ -214,7 +214,7 @@ void handle_input(Game *pGame) {
         case MENU:
             button = SDL_GetMouseState(&mouseX, &mouseY);
 
-            if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){  //pGame->state = ONGOING;  
+            if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){  pGame->state = ONGOING;  
                     cData.command=READY;
                     cData.playerNumber=-1;
                     memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
@@ -225,7 +225,7 @@ void handle_input(Game *pGame) {
             else if(mouseX>288 && mouseX<533 && mouseY>497 && mouseY<541 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = CONFIGURE;
             else if(mouseX>320&& mouseX<499 && mouseY>593 && mouseY<637 &&(button && SDL_BUTTON_LMASK)) close(pGame); // Exit the game
         
-            /*switch(pGame->menuState){
+            switch(pGame->menuState){
                 case SETTINGS:
                     if(state[SDL_SCANCODE_1] && pGame->slotsTaken[0] != 1){
                         pGame->playerNumber = 1;
@@ -247,7 +247,7 @@ void handle_input(Game *pGame) {
                 
                 default:
                     break;
-            }*/
+            }
 
             break;
 
@@ -319,7 +319,7 @@ void handle_input(Game *pGame) {
         cData.monkey.bData[i].dy = pGame->bullets[i]->dy;
     }*/
 
-    //sendData(pGame, &cData);
+    sendData(pGame, &cData);
     
 }
 

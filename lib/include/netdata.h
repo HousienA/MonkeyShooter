@@ -3,6 +3,7 @@
 
 
 #define MAX_MONKEYS 4
+#define MAX_BULLETS 100
 
 
 enum clientCommand{READY, UP, DOWN, LEFT, RIGHT, FIRE};

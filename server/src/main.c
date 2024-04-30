@@ -50,6 +50,7 @@ void add(IPaddress address, IPaddress clients[],int *pNrOfClients);
 void sendGameData(Game *pGame);
 void executeCommand(Game *pGame,ClientData cData);
 void setUpGame(Game *pGame);
+void acceptClients(Game *pGame);
 
 int main(int argv, char** args){
     Game g={0};
@@ -135,12 +136,29 @@ int initiate(Game *pGame){
     return 1;
 }
 
+void acceptClients(Game *pGame){
+    while(pGame->num_players < MAX_PLAYERS) {
+        // Receive UDP packets
+        if(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1) {
+            // Add the player
+            add(pGame->pPacket->address, pGame->serverAddress, &(pGame->num_players));
+            printf("A new player has been added. Total players: %d\n", pGame->num_players);
+        } else {
+            // No incoming packets, break out of the loop
+            break;
+        }
+    }
+}
+
+
 void run(Game *pGame){
     int close_requested = 0;
     SDL_Event event;
     ClientData cData;
 
     while(!close_requested){
+        acceptClients(pGame);
+
         switch (pGame->state)
         {
             case ONGOING:
@@ -151,7 +169,12 @@ void run(Game *pGame){
                     executeCommand(pGame,cData);
                 }
                 
-                if(SDL_PollEvent(&event)) if(event.type==SDL_QUIT) close_requested = 1;
+                if(SDL_PollEvent(&event)) {
+                    if(event.type==SDL_QUIT) {
+                        close_requested = 1;
+                        break; // Break out of the while loop when the window is closed
+                    }
+                }
                 
                 for(int i=0;i<MAX_PLAYERS;i++)
                     pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
@@ -192,7 +215,10 @@ void run(Game *pGame){
                 SDL_RenderPresent(pGame->pRenderer);
                 destroyText(waitingText);
                 //printf("Waiting for players\n");
-                if(SDL_PollEvent(&event) && event.type==SDL_QUIT) close_requested = 1;
+                if(SDL_PollEvent(&event) && event.type==SDL_QUIT) {
+                    close_requested = 1;
+                    break; // Break out of the while loop when the window is closed
+                }
                 if(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
                     add(pGame->pPacket->address,pGame->serverAddress,&(pGame->num_players));
                     if(pGame->num_players==MAX_MONKEYS) setUpGame(pGame);
