@@ -1,6 +1,8 @@
 #include "../include/game.h"
-#include "../include/character.h"
+#include "../src/character.c"
 #include "../include/world.h"
+
+typedef struct Character Character;
 
 //define the walls in map
 Wall walls[23] = {

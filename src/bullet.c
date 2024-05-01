@@ -1,7 +1,15 @@
-#include "../include/character.h"
-#include "../include/bullet.h"
 #include <stdlib.h>
-#include <math.h>
+#include <stdio.h>
+#include "../include/bullet.h"
+#include "../include/character.h"
+
+struct bullet {
+    float x;
+    float y;
+    float dx;
+    float dy;
+    SDL_Texture *texture;
+}; 
 
 Bullet* createBullet(SDL_Renderer *renderer, float startX, float startY) {
     Bullet *bullet = malloc(sizeof(Bullet));
@@ -11,9 +19,9 @@ Bullet* createBullet(SDL_Renderer *renderer, float startX, float startY) {
     }
     bullet->x = startX;
     bullet->y = startY;
-    bullet->dx = 0; 
+    bullet->dx = 0;
     bullet->dy = 0;
-
+    // Initialize other members as needed
     return bullet;
 }
 
@@ -29,11 +37,10 @@ void moveBullet(Bullet *bullet) {
 }
 
 void drawBullet(Bullet *bullet, SDL_Renderer *renderer) {
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Set color 
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Set color
     SDL_Rect rect = {bullet->x, bullet->y, 5, 5};
     SDL_RenderFillRect(renderer, &rect); // Draw a bullet
 }
-
 
 bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter) {
     // Calculate the bounding box for the bullet
@@ -57,3 +64,4 @@ bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter) {
 
     return false;
 }
+
