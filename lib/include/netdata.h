@@ -2,7 +2,7 @@
 #define NETDATA_H
 
 
-#define MAX_MONKEYS 4
+#define MAX_MONKEYS 2
 #define MAX_BULLETS 100
 
 
@@ -11,11 +11,14 @@ typedef enum clientCommand ClientCommand;
 
 enum gameState {MENU, ONGOING };
 typedef enum gameState GameState;
+
 struct monkeyData{
    float x, y, vx, vy;
    int health;
    
 };
+
+//client data fails to track position of monkeys, not sending to server correctly
 typedef struct monkeyData MonkeyData;
 struct clientData{
    ClientCommand command;
@@ -30,9 +33,6 @@ struct bulletData{
    float x, y, dx, dy;
 };
 typedef struct bulletData BulletData;
-
-
-  
 
 
 struct serverData{
