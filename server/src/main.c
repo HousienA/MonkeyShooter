@@ -60,8 +60,8 @@ void renderCharacters(Game *pGame){
     for(int i = 0; i < pGame->num_players; i++){
         Character *character = pGame->pPlayers[i];
         SDL_Rect characterDest = {
-            pGame->pPlayers[i]->dest.x - pGame->viewport.x,
-            pGame->pPlayers[i]->dest.y - pGame->viewport.y,
+            pGame->pPlayers[i]->dest.x ,//- pGame->viewport.x,
+            pGame->pPlayers[i]->dest.y ,//- pGame->viewport.y,
             pGame->pPlayers[i]->dest.w,
             pGame->pPlayers[i]->dest.h
         };
@@ -187,10 +187,10 @@ void run(Game *pGame){
                 //printf("Game is ongoing\n");
                 sendGameData(pGame);
                 SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, NULL);
+                renderCharacters(pGame);
                 while(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
                     memcpy(&cData, pGame->pPacket->data, sizeof(ClientData));
                     executeCommand(pGame,cData);
-                    renderCharacters(pGame);
                 }
                 
                 if(SDL_PollEvent(&event)) {
@@ -319,7 +319,7 @@ void executeCommand(Game *pGame,ClientData cData){
 
     // Check if coordinates are not negative
     if (cData.monkey.x < 0 || cData.monkey.y < 0) {
-        printf("Error: Invalid coordinates for player %d: x=%f, y=%f\n", cData.playerNumber, cData.monkey.x, cData.monkey.y);
+        printf("Error: Invalid coordinates for player %d: x=%d, y=%d\n", cData.playerNumber, cData.monkey.x, cData.monkey.y);
         return;
     }
     //track player's position (im guessing cData is not tracking the player's position, so we need to update it here)
@@ -329,8 +329,8 @@ void executeCommand(Game *pGame,ClientData cData){
     pGame->pPlayers[cData.playerNumber]->dest.x = cData.monkey.x;
     pGame->pPlayers[cData.playerNumber]->dest.y = cData.monkey.y;
     pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
-    printf("pGame->pPlayers[cData.playerNumber]->dest.x: %d\n", pGame->pPlayers[cData.playerNumber]->dest.x);
-    printf("pGame->pPlayers[cData.playerNumber]->dest.y: %d\n", pGame->pPlayers[cData.playerNumber]->dest.y);
+    //printf("pGame->pPlayers[cData.playerNumber]->dest.x: %d\n", pGame->pPlayers[cData.playerNumber]->dest.x);
+    //printf("pGame->pPlayers[cData.playerNumber]->dest.y: %d\n", pGame->pPlayers[cData.playerNumber]->dest.y);
 }
 
 void close(Game *pGame){
