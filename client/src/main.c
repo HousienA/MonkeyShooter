@@ -224,16 +224,16 @@ void handleBulletCreation(Game *pGame, int x, int y) {
 //function to handle the settings menu
 void handle_settings(Game *pGame, const Uint8 *state) {
     if (state[SDL_SCANCODE_1] && pGame->slotsTaken[0] != 1) {
-        pGame->playerNumber = 1; // Player 1
+        pGame->playerNumber = 0; // Player 1
         pGame->slotsTaken[0] = 1;
     } else if (state[SDL_SCANCODE_2] && pGame->slotsTaken[1] != 1) {
-        pGame->playerNumber = 2; // Player 2
+        pGame->playerNumber = 1; // Player 2
         pGame->slotsTaken[1] = 1;
     } else if (state[SDL_SCANCODE_3] && pGame->slotsTaken[2] != 1) {
-        pGame->playerNumber = 3; // Player 3
+        pGame->playerNumber = 2; // Player 3
         pGame->slotsTaken[2] = 1;
     } else if (state[SDL_SCANCODE_4] && pGame->slotsTaken[3] != 1) {
-        pGame->playerNumber = 4; // Player 4
+        pGame->playerNumber = 3; // Player 4
         pGame->slotsTaken[3] = 1;
     }
     printf("Player number: %d\n", pGame->playerNumber);

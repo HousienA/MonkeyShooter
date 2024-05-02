@@ -60,8 +60,8 @@ void renderCharacters(Game *pGame){
     for(int i = 0; i < pGame->num_players; i++){
         Character *character = pGame->pPlayers[i];
         SDL_Rect characterDest = {
-            pGame->pPlayers[i]->dest.x,
-            pGame->pPlayers[i]->dest.y,
+            pGame->pPlayers[i]->dest.x - pGame->viewport.x,
+            pGame->pPlayers[i]->dest.y - pGame->viewport.y,
             pGame->pPlayers[i]->dest.w,
             pGame->pPlayers[i]->dest.h
         };
@@ -329,6 +329,8 @@ void executeCommand(Game *pGame,ClientData cData){
     pGame->pPlayers[cData.playerNumber]->dest.x = cData.monkey.x;
     pGame->pPlayers[cData.playerNumber]->dest.y = cData.monkey.y;
     pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
+    printf("pGame->pPlayers[cData.playerNumber]->dest.x: %d\n", pGame->pPlayers[cData.playerNumber]->dest.x);
+    printf("pGame->pPlayers[cData.playerNumber]->dest.y: %d\n", pGame->pPlayers[cData.playerNumber]->dest.y);
 }
 
 void close(Game *pGame){
