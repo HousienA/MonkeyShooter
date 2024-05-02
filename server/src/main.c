@@ -116,7 +116,7 @@ int initiate(Game *pGame){
 		close(pGame);
         return 0;
 	}
-	if (!(pGame->pPacket = SDLNet_AllocPacket(512)))
+	if (!(pGame->pPacket = SDLNet_AllocPacket(16064)))
 	{
 		printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
 		close(pGame);
@@ -304,11 +304,11 @@ void executeCommand(Game *pGame,ClientData cData){
 
     // Check if coordinates are not negative
     if (cData.monkey.x < 0 || cData.monkey.y < 0) {
-        printf("Error: Invalid coordinates for player %d: x=%d, y=%d\n", cData.playerNumber, cData.monkey.x, cData.monkey.y);
+        printf("Error: Invalid coordinates for player %d: x=%f, y=%f\n", cData.playerNumber, cData.monkey.x, cData.monkey.y);
         return;
     }
     //track player's position (im guessing cData is not tracking the player's position, so we need to update it here)
-    printf("Player %d position: x=%d, y=%d\n", cData.playerNumber, cData.monkey.x, cData.monkey.y);
+    printf("Player %d position: x=%f, y=%f\n", cData.playerNumber, cData.monkey.x, cData.monkey.y);
 
     //Update player data
     pGame->pPlayers[cData.playerNumber]->dest.x = cData.monkey.x;

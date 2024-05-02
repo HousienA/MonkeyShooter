@@ -6,10 +6,10 @@ COMMONSRCDIR = ../lib/src
 INCLUDE = -I/opt/homebrew/include/
 LIBS = /opt/homebrew/lib
 CFLAGS = -g -I$(INCLUDE) -c
-LDFLAGS = -L/opt/homebrew/lib/ -lSDL2main -lSDL2 -lSDL2_image -lSDL2_net -lm 
+LDFLAGS = -L/opt/homebrew/lib/ -lSDL2main -lSDL2 -lSDL2_image -lSDL2_net -lm -lSDL2_ttf
 
 characterServer: main.o character.o world.o bullet.o text.o
-	gcc -o characterServer main.o character.o world.o bullet.o text.o $(LDFLAGS)
+	gcc -fsanitize=address -o characterServer main.o character.o world.o bullet.o text.o $(LDFLAGS)
 
 main.o: $(SRCDIR)/main.c $(INCDIR)/netdata.h $(INCDIR)/character.h $(INCDIR)/world.h $(INCDIR)/text.h
 	gcc -c $(INCLUDE) ./src/main.c

@@ -86,7 +86,7 @@ int initializeNetwork(Game *pGame){
     }
 
     // Allocate memory for the UDP packet
-    pGame->pPacket = SDLNet_AllocPacket(512);
+    pGame->pPacket = SDLNet_AllocPacket(16064);
     if (!pGame->pPacket) {
         printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
         SDLNet_UDP_Close(pGame->pSocket); // Close the socket
@@ -316,7 +316,7 @@ void handle_input(Game *pGame) {
             } else if (!(SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK)) { // If the button is not pressed, reset the flag
                 mouseClick = 0;
             };
-            
+            sendData(pGame, &cData);
             break;
     }
      if(state[SDL_SCANCODE_ESCAPE]){
@@ -332,7 +332,7 @@ void handle_input(Game *pGame) {
         cData.monkey.bData[i].dy = pGame->bullets[i]->dy;
     }*/
 
-    sendData(pGame, &cData);
+    
     
 }
 
