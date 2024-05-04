@@ -34,7 +34,7 @@ struct game{
     GameState state;
     MenuState menuState;
     Bullet *bullets[1000];
-    int num_bullets, num_players, playerNumber, slotsTaken[4]; // track the number of players in the game
+    int num_bullets, num_players, slotsTaken[4]; // track the number of players in the game
     SDL_Rect viewport;
     TTF_Font *font;
     Text *pWaitingText, *pJoinedText;
@@ -52,7 +52,7 @@ void close(Game *pGame);
 void handleInput(Game *pGame,SDL_Event *pEvent);
 void add(IPaddress address, IPaddress clients[],int *pNrOfClients);
 void sendGameData(Game *pGame);
-void executeCommand(Game *pGame,ClientData cData);
+void executeCommand(Game *pGame,ClientData cData, ServerData *sData);
 void setUpGame(Game *pGame);
 void acceptClients(Game *pGame);
 
@@ -130,7 +130,7 @@ int initiate(Game *pGame){
 		close(pGame);
         return 0;
 	}
-	if (!(pGame->pPacket = SDLNet_AllocPacket(16064)))
+	if (!(pGame->pPacket = SDLNet_AllocPacket(200)))
 	{
 		printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
 		close(pGame);
@@ -177,6 +177,7 @@ void run(Game *pGame){
     int close_requested = 0;
     SDL_Event event;
     ClientData cData;
+    ServerData sData;
 
     while(!close_requested){
        
@@ -190,7 +191,7 @@ void run(Game *pGame){
                 renderCharacters(pGame);
                 while(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
                     memcpy(&cData, pGame->pPacket->data, sizeof(ClientData));
-                    executeCommand(pGame,cData);
+                    executeCommand(pGame,cData, &sData);
                 }
                 
                 if(SDL_PollEvent(&event)) {
@@ -263,25 +264,30 @@ void setUpGame(Game *pGame){
     SDL_RenderPresent(pGame->pRenderer);
     destroyText(pGame->pJoinedText);
     pGame->num_players=MAX_PLAYERS;
+    
+
     pGame->state = ONGOING;
 }
 
 void sendGameData(Game *pGame){
     ServerData sData;
     sData.gState = pGame->state;
-    for(int i=0;i<MAX_PLAYERS;i++){
+    for(int i=0;i<MAX_MONKEYS;i++){
         sData.slotsTaken[i] = pGame->slotsTaken[i];
         sData.monkeys[i].x = pGame->pPlayers[i]->dest.x;
         sData.monkeys[i].y = pGame->pPlayers[i]->dest.y;
         sData.monkeys[i].vx = pGame->pPlayers[i]->source.x;
         sData.monkeys[i].vy = pGame->pPlayers[i]->source.y;
+        sData.numberOfPlayers = pGame->num_players;
     }
 
-    for(int i=0;i<MAX_PLAYERS;i++){
-        memcpy(pGame->pPacket->data, &(pGame->sData), sizeof(ServerData));
+    for(int i=0;i<MAX_MONKEYS;i++){
+        memcpy(pGame->pPacket->data, &(sData), sizeof(ServerData));
 		pGame->pPacket->len = sizeof(ServerData);
         pGame->pPacket->address = pGame->serverAddress[i];
-		SDLNet_UDP_Send(pGame->pSocket,-1,pGame->pPacket);
+        printf("Sending data to player %d\n", i);
+        printf("%d", pGame->pPacket->address.host);
+		if(0==SDLNet_UDP_Send(pGame->pSocket,-1,pGame->pPacket)) printf("SDLNet_UDP_Send: %s\n", SDLNet_GetError());
     }
 }
 
@@ -292,7 +298,7 @@ void add(IPaddress address, IPaddress clients[],int *pNrOfClients){
 	(*pNrOfClients)++;
 }
 
-void executeCommand(Game *pGame,ClientData cData){
+void executeCommand(Game *pGame,ClientData cData, ServerData *sData){
     switch (cData.command)
     {
         case UP:
@@ -323,14 +329,12 @@ void executeCommand(Game *pGame,ClientData cData){
         return;
     }
     //track player's position (im guessing cData is not tracking the player's position, so we need to update it here)
-    printf("Player %d position: x=%f, y=%f\n", cData.playerNumber, cData.monkey.x, cData.monkey.y);
+    //printf("Player %d position: x=%f, y=%f\n", cData.playerNumber, cData.monkey.x, cData.monkey.y);
 
     //Update player data
-    pGame->pPlayers[cData.playerNumber]->dest.x = cData.monkey.x;
-    pGame->pPlayers[cData.playerNumber]->dest.y = cData.monkey.y;
-    pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
-    //printf("pGame->pPlayers[cData.playerNumber]->dest.x: %d\n", pGame->pPlayers[cData.playerNumber]->dest.x);
-    //printf("pGame->pPlayers[cData.playerNumber]->dest.y: %d\n", pGame->pPlayers[cData.playerNumber]->dest.y);
+    //pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
+    printf("pGame->pPlayers[%d]->dest.x: %d\n", cData.playerNumber, pGame->pPlayers[cData.playerNumber]->dest.x);
+    printf("pGame->pPlayers[%d]->dest.y: %d\n", cData.playerNumber, pGame->pPlayers[cData.playerNumber]->dest.y);
 }
 
 void close(Game *pGame){

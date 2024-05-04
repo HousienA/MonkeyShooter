@@ -86,7 +86,7 @@ int initializeNetwork(Game *pGame){
     }
 
     // Allocate memory for the UDP packet
-    pGame->pPacket = SDLNet_AllocPacket(16064);
+    pGame->pPacket = SDLNet_AllocPacket(200);
     if (!pGame->pPacket) {
         printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
         SDLNet_UDP_Close(pGame->pSocket); // Close the socket
@@ -194,14 +194,29 @@ void initializeCharacters(Game *pGame){
 void renderCharacters(Game *pGame){
     for(int i = 0; i < pGame->num_players; i++){
         Character *character = pGame->pPlayers[i];
-        SDL_Rect characterDest = {
-            pGame->pPlayers[i]->dest.x - pGame->viewport.x,
-            pGame->pPlayers[i]->dest.y - pGame->viewport.y,
-            pGame->pPlayers[i]->dest.w,
-            pGame->pPlayers[i]->dest.h
-        };
-        printf("Player: x: %d, y: %d\n", characterDest.x, characterDest.y);
-        SDL_RenderCopyEx(pGame->pRenderer, character->tex, &character->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
+        
+        if(i==pGame->playerNumber){
+            SDL_Rect  mainCharacterDest = {
+                pGame->pPlayers[i]->dest.x - pGame->viewport.x,
+                pGame->pPlayers[i]->dest.y - pGame->viewport.y,
+                pGame->pPlayers[i]->dest.w,
+                pGame->pPlayers[i]->dest.h
+            };
+            printf("Maincharacter: x: %d, y: %d\n", mainCharacterDest.x, mainCharacterDest.y);
+            SDL_RenderCopyEx(pGame->pRenderer, character->tex, &character->source, &mainCharacterDest, 0, NULL, SDL_FLIP_NONE);  
+        }
+        else{
+            SDL_Rect  characterDest = {
+                pGame->pPlayers[i]->dest.x,
+                pGame->pPlayers[i]->dest.y,
+                pGame->pPlayers[i]->dest.w,
+                pGame->pPlayers[i]->dest.h
+            };
+            printf("Player: %d, y: %d\n", characterDest.x, characterDest.y);
+            SDL_RenderCopyEx(pGame->pRenderer, character->tex, &character->source, &characterDest, 0, NULL, SDL_FLIP_NONE);  
+        }
+        
+        
     }
 }
 
@@ -256,7 +271,7 @@ void handle_input(Game *pGame) {
 
             if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){  pGame->state = ONGOING;  
                     cData.command=READY;
-                    cData.playerNumber=-1;
+                    cData.playerNumber= pGame->playerNumber;
                     memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
 		            pGame->pPacket->len = sizeof(ClientData);
                     SDLNet_UDP_Send(pGame->pSocket, -1,pGame->pPacket);
@@ -281,7 +296,7 @@ void handle_input(Game *pGame) {
                 cData.command = LEFT;
                 if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
                     turnRight(pGame->pPlayers[pGame->playerNumber]);
-                    cData.command = RIGHT;
+                    cData.command = BLOCKED;
                 }
             }
             if (state[SDL_SCANCODE_D]) {
@@ -289,7 +304,7 @@ void handle_input(Game *pGame) {
                 cData.command = RIGHT;
                 if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
                     turnLeft(pGame->pPlayers[pGame->playerNumber]);
-                    cData.command = LEFT;
+                    cData.command = BLOCKED;
                 }
             }
             if (state[SDL_SCANCODE_W]) {
@@ -297,7 +312,7 @@ void handle_input(Game *pGame) {
                 cData.command = UP;
                 if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
                     turnDown(pGame->pPlayers[pGame->playerNumber]);
-                    cData.command = DOWN;
+                    cData.command = BLOCKED;
                 }
             }
             if (state[SDL_SCANCODE_S]) {
@@ -305,7 +320,7 @@ void handle_input(Game *pGame) {
                 cData.command = DOWN;
                 if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
                     turnUp(pGame->pPlayers[pGame->playerNumber]);
-                    cData.command = UP;
+                    cData.command = BLOCKED;
                 }
             }
             if (SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK && !mouseClick && currentTime - lastShootTime >= 1000) {
@@ -347,9 +362,19 @@ void run(Game *pGame) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) close_requested = TRUE;
         }
-        //updateWithServerData(pGame);
-        
+    
+        while((SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket))){
+            updateWithServerData(pGame);
+        }
+        if(-1==SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket)){
+            printf("Error receiving data: %s\n", SDLNet_GetError());
+        }
+    
         handle_input(pGame);
+
+        for(int i = 0; i < 4; i++){
+            printf("Player %d: x: %d, y: %d\n", i, pGame->pPlayers[i]->dest.x, pGame->pPlayers[i]->dest.y);
+        }
 
         //set viewport position to follow the player (player in the middle of screen)
         pGame->viewport.x = pGame->pPlayers[pGame->playerNumber]->dest.x - (pGame->viewport.w / 2);
@@ -379,13 +404,27 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->background, &sourceRect, NULL);
 
             // Draw the character on the screen within the viewport
-            SDL_Rect characterDest = {
-                pGame->pPlayers[pGame->playerNumber]->dest.x - pGame->viewport.x,
-                pGame->pPlayers[pGame->playerNumber]->dest.y - pGame->viewport.y,
-                pGame->pPlayers[pGame->playerNumber]->dest.w,
-                pGame->pPlayers[pGame->playerNumber]->dest.h
-            };
-            SDL_RenderCopyEx(pGame->pRenderer, pGame->pPlayers[pGame->playerNumber]->tex, &pGame->pPlayers[pGame->playerNumber]->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
+            for (int i = 0; i < pGame->num_players; i++) {
+                if(i==pGame->playerNumber){  // Skip the main player (drawn separately
+                SDL_Rect characterDest = {
+                    pGame->pPlayers[i]->dest.x - pGame->viewport.x,
+                    pGame->pPlayers[i]->dest.y - pGame->viewport.y,
+                    pGame->pPlayers[i]->dest.w,
+                    pGame->pPlayers[i]->dest.h
+                };
+                SDL_RenderCopyEx(pGame->pRenderer, pGame->pPlayers[i]->tex, &pGame->pPlayers[i]->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
+                }
+                else{
+                    SDL_Rect characterDest = {
+                    pGame->pPlayers[i]->dest.x,
+                    pGame->pPlayers[i]->dest.y,
+                    pGame->pPlayers[i]->dest.w,
+                    pGame->pPlayers[i]->dest.h
+                };
+                SDL_RenderCopyEx(pGame->pRenderer, pGame->pPlayers[i]->tex, &pGame->pPlayers[i]->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
+                }
+            }
+            
 
             for (int i = 0; i < pGame->num_bullets; i++) {
                 moveBullet(pGame->bullets[i]);
@@ -458,12 +497,12 @@ void updateWithServerData(Game *pGame){
         ServerData sData;
         memcpy(&sData, pGame->pPacket->data, sizeof(ServerData));
         pGame->state = sData.gState;
-        for(int i=0;i<MAX_MONKEYS;i++){
-            pGame->pPlayers[i]->dest.x = sData.monkeys[i].x;
-            pGame->pPlayers[i]->dest.y = sData.monkeys[i].y;
-            pGame->pPlayers[i]->source.x = sData.monkeys[i].vx;
-            pGame->pPlayers[i]->source.y = sData.monkeys[i].vy;
-            pGame->pPlayers[i]->health = sData.monkeys[i].health;
+        printf("monkey 0%d x: %f, y: %f\n", 0, sData.monkeys[0].x, sData.monkeys[0].y);
+        printf("monkey 1%d x: %f, y: %f\n", 1, sData.monkeys[1].x, sData.monkeys[1].y);
+        for(int i=0;i<sData.numberOfPlayers;i++){
+            if(i!=pGame->playerNumber){
+                updateMonkeysWithRecievedData(pGame->pPlayers[i],&(sData.monkeys[i]));
+            }
         }
     }
 }
@@ -488,4 +527,9 @@ void close(Game *pGame){
     if(pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
     if(pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
     SDL_Quit();
+}
+
+void updateMonkeysWithRecievedData(Character *pPlayers, MonkeyData *monkeys){
+    pPlayers->dest.x = monkeys->x;
+    pPlayers->dest.y = monkeys->y;
 }

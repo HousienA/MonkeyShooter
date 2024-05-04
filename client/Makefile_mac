@@ -9,7 +9,7 @@ CFLAGS = -g -I$(INCLUDE) -c
 LDFLAGS = -L/opt/homebrew/lib/ -lSDL2main -lSDL2 -lSDL2_image -lm -lSDL2_net
 
 characterClient: main.o character.o world.o bullet.o
-	gcc -o characterClient main.o character.o world.o bullet.o $(LDFLAGS)
+	gcc -fsanitize=address -o characterClient main.o character.o world.o bullet.o $(LDFLAGS)
 
 main.o: $(SRCDIR)/main.c $(INCDIR)/netdata.h $(INCDIR)/character.h $(INCDIR)/world.h 
 	gcc -c $(INCLUDE) ./src/main.c

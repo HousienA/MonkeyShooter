@@ -6,7 +6,7 @@
 #define MAX_BULLETS 100
 
 
-enum clientCommand{READY, UP, DOWN, LEFT, RIGHT, FIRE};
+enum clientCommand{READY, UP, DOWN, LEFT, RIGHT, FIRE, BLOCKED};
 typedef enum clientCommand ClientCommand;
 
 enum gameState {MENU, ONGOING };
@@ -37,9 +37,9 @@ typedef struct bulletData BulletData;
 
 struct serverData{
    MonkeyData monkeys[MAX_MONKEYS];
-   int slotsTaken[4], numberOfBullets;
+   int slotsTaken[4], numberOfBullets, numberOfPlayers;
    GameState gState;
-   BulletData bData[1000];
+   
 };
 typedef struct serverData ServerData;
 
