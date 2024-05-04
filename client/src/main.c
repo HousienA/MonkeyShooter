@@ -35,7 +35,7 @@ struct game{
     MenuState menuState;
     Bullet *bullets[1000];
     int num_bullets, num_players, playerNumber, slotsTaken[MAX_PLAYERS]; // track the number of players in the game
-    SDL_Rect viewport;
+
 
     UDPsocket pSocket;
     IPaddress serverAddress;
@@ -163,15 +163,10 @@ int intializeWindow(Game *pGame) {
 
     // Set the position and size of the menu image
     pGame->menu_rect = (SDL_Rect){0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+    initializeCharacters(pGame);
 
     pGame->state = MENU;
     
-    //set viewport to be used in all functions
-    pGame->viewport.x = 0;
-    pGame->viewport.y = 0;
-    pGame->viewport.w = WINDOW_WIDTH;
-    pGame->viewport.h = WINDOW_HEIGHT;
-
     return TRUE;
 }
 
@@ -194,36 +189,21 @@ void initializeCharacters(Game *pGame){
 void renderCharacters(Game *pGame){
     for(int i = 0; i < pGame->num_players; i++){
         Character *character = pGame->pPlayers[i];
-        
-        if(i==pGame->playerNumber){
-            SDL_Rect  mainCharacterDest = {
-                pGame->pPlayers[i]->dest.x - pGame->viewport.x,
-                pGame->pPlayers[i]->dest.y - pGame->viewport.y,
-                pGame->pPlayers[i]->dest.w,
-                pGame->pPlayers[i]->dest.h
-            };
-            printf("Maincharacter: x: %d, y: %d\n", mainCharacterDest.x, mainCharacterDest.y);
-            SDL_RenderCopyEx(pGame->pRenderer, character->tex, &character->source, &mainCharacterDest, 0, NULL, SDL_FLIP_NONE);  
-        }
-        else{
-            SDL_Rect  characterDest = {
-                pGame->pPlayers[i]->dest.x,
-                pGame->pPlayers[i]->dest.y,
-                pGame->pPlayers[i]->dest.w,
-                pGame->pPlayers[i]->dest.h
-            };
-            printf("Player: %d, y: %d\n", characterDest.x, characterDest.y);
-            SDL_RenderCopyEx(pGame->pRenderer, character->tex, &character->source, &characterDest, 0, NULL, SDL_FLIP_NONE);  
-        }
-        
-        
+        SDL_Rect characterDest = {
+            pGame->pPlayers[i]->dest.x ,//- pGame->viewport.x,
+            pGame->pPlayers[i]->dest.y ,//- pGame->viewport.y,
+            pGame->pPlayers[i]->dest.w,
+            pGame->pPlayers[i]->dest.h
+        };
+        printf("Player: x: %d, y: %d\n", characterDest.x, characterDest.y);
+        SDL_RenderCopyEx(pGame->pRenderer, character->tex, &character->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
     }
 }
 
 //function to handle the creation of bullets
 void handleBulletCreation(Game *pGame, int x, int y) {
-    float bulletStartX = pGame->pPlayers[pGame->playerNumber]->dest.x - pGame->viewport.x + pGame->pPlayers[pGame->playerNumber]->dest.w / 2;
-    float bulletStartY = pGame->pPlayers[pGame->playerNumber]->dest.y - pGame->viewport.y + pGame->pPlayers[pGame->playerNumber]->dest.h / 2;
+    float bulletStartX = pGame->pPlayers[pGame->playerNumber]->dest.x + pGame->pPlayers[pGame->playerNumber]->dest.w / 2;
+    float bulletStartY = pGame->pPlayers[pGame->playerNumber]->dest.y + pGame->pPlayers[pGame->playerNumber]->dest.h / 2;
     pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, bulletStartX, bulletStartY);
     if (pGame->bullets[pGame->num_bullets]) {
         // Calculate direction vector (normalized)
@@ -356,9 +336,9 @@ void run(Game *pGame) {
     SDL_Event event;
 
     //Initialize players
-    initializeCharacters(pGame);
 
     while (!close_requested) {
+        handle_input(pGame);
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) close_requested = TRUE;
         }
@@ -369,22 +349,10 @@ void run(Game *pGame) {
         if(-1==SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket)){
             printf("Error receiving data: %s\n", SDLNet_GetError());
         }
-    
-        handle_input(pGame);
 
         for(int i = 0; i < 4; i++){
             printf("Player %d: x: %d, y: %d\n", i, pGame->pPlayers[i]->dest.x, pGame->pPlayers[i]->dest.y);
         }
-
-        //set viewport position to follow the player (player in the middle of screen)
-        pGame->viewport.x = pGame->pPlayers[pGame->playerNumber]->dest.x - (pGame->viewport.w / 2);
-        pGame->viewport.y = pGame->pPlayers[pGame->playerNumber]->dest.y - (pGame->viewport.h / 2);
-
-        //if player is near edge of map move the player and keep the viewport in bounds
-        if (pGame->viewport.x < 0) pGame->viewport.x = 0;
-        if (pGame->viewport.y < 0) pGame->viewport.y = 0;
-        if (pGame->viewport.x + pGame->viewport.w > MAP_WIDTH) pGame->viewport.x = MAP_WIDTH - pGame->viewport.w;
-        if (pGame->viewport.y + pGame->viewport.h > MAP_HEIGHT) pGame->viewport.y = MAP_HEIGHT - pGame->viewport.h;
 
         // Render the game
         SDL_RenderClear(pGame->pRenderer);
@@ -397,34 +365,9 @@ void run(Game *pGame) {
         }
         if (pGame->state == ONGOING) {
             //Render players
+
+            SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, NULL);    
             renderCharacters(pGame);
-
-            // Render only the portion of the map that falls within the viewport
-            SDL_Rect sourceRect = {pGame->viewport.x, pGame->viewport.y, pGame->viewport.w, pGame->viewport.h};
-            SDL_RenderCopy(pGame->pRenderer, pGame->background, &sourceRect, NULL);
-
-            // Draw the character on the screen within the viewport
-            for (int i = 0; i < pGame->num_players; i++) {
-                if(i==pGame->playerNumber){  // Skip the main player (drawn separately
-                SDL_Rect characterDest = {
-                    pGame->pPlayers[i]->dest.x - pGame->viewport.x,
-                    pGame->pPlayers[i]->dest.y - pGame->viewport.y,
-                    pGame->pPlayers[i]->dest.w,
-                    pGame->pPlayers[i]->dest.h
-                };
-                SDL_RenderCopyEx(pGame->pRenderer, pGame->pPlayers[i]->tex, &pGame->pPlayers[i]->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
-                }
-                else{
-                    SDL_Rect characterDest = {
-                    pGame->pPlayers[i]->dest.x,
-                    pGame->pPlayers[i]->dest.y,
-                    pGame->pPlayers[i]->dest.w,
-                    pGame->pPlayers[i]->dest.h
-                };
-                SDL_RenderCopyEx(pGame->pRenderer, pGame->pPlayers[i]->tex, &pGame->pPlayers[i]->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
-                }
-            }
-            
 
             for (int i = 0; i < pGame->num_bullets; i++) {
                 moveBullet(pGame->bullets[i]);

@@ -35,7 +35,6 @@ struct game{
     MenuState menuState;
     Bullet *bullets[1000];
     int num_bullets, num_players, slotsTaken[4]; // track the number of players in the game
-    SDL_Rect viewport;
     TTF_Font *font;
     Text *pWaitingText, *pJoinedText;
     ServerData sData;
@@ -52,7 +51,7 @@ void close(Game *pGame);
 void handleInput(Game *pGame,SDL_Event *pEvent);
 void add(IPaddress address, IPaddress clients[],int *pNrOfClients);
 void sendGameData(Game *pGame);
-void executeCommand(Game *pGame,ClientData cData, ServerData *sData);
+void executeCommand(Game *pGame,ClientData cData);
 void setUpGame(Game *pGame);
 void acceptClients(Game *pGame);
 
@@ -177,7 +176,7 @@ void run(Game *pGame){
     int close_requested = 0;
     SDL_Event event;
     ClientData cData;
-    ServerData sData;
+
 
     while(!close_requested){
        
@@ -186,12 +185,12 @@ void run(Game *pGame){
         {
             case ONGOING:
                 //printf("Game is ongoing\n");
-                sendGameData(pGame);
+                //sendGameData(pGame);
                 SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, NULL);
                 renderCharacters(pGame);
                 while(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
                     memcpy(&cData, pGame->pPacket->data, sizeof(ClientData));
-                    executeCommand(pGame,cData, &sData);
+                    executeCommand(pGame,cData);
                 }
                 
                 if(SDL_PollEvent(&event)) {
@@ -269,7 +268,7 @@ void setUpGame(Game *pGame){
     pGame->state = ONGOING;
 }
 
-void sendGameData(Game *pGame){
+/*void sendGameData(Game *pGame){
     ServerData sData;
     sData.gState = pGame->state;
     for(int i=0;i<MAX_MONKEYS;i++){
@@ -289,7 +288,7 @@ void sendGameData(Game *pGame){
         printf("%d", pGame->pPacket->address.host);
 		if(0==SDLNet_UDP_Send(pGame->pSocket,-1,pGame->pPacket)) printf("SDLNet_UDP_Send: %s\n", SDLNet_GetError());
     }
-}
+}*/
 
 
 void add(IPaddress address, IPaddress clients[],int *pNrOfClients){
@@ -298,7 +297,7 @@ void add(IPaddress address, IPaddress clients[],int *pNrOfClients){
 	(*pNrOfClients)++;
 }
 
-void executeCommand(Game *pGame,ClientData cData, ServerData *sData){
+void executeCommand(Game *pGame,ClientData cData){
     switch (cData.command)
     {
         case UP:
@@ -335,6 +334,20 @@ void executeCommand(Game *pGame,ClientData cData, ServerData *sData){
     //pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
     printf("pGame->pPlayers[%d]->dest.x: %d\n", cData.playerNumber, pGame->pPlayers[cData.playerNumber]->dest.x);
     printf("pGame->pPlayers[%d]->dest.y: %d\n", cData.playerNumber, pGame->pPlayers[cData.playerNumber]->dest.y);
+    ServerData sData;
+    sData.gState = pGame->state;
+    sData.slotsTaken[cData.playerNumber] = pGame->slotsTaken[cData.playerNumber];
+    sData.monkeys[cData.playerNumber].x = pGame->pPlayers[cData.playerNumber]->dest.x;
+    sData.monkeys[cData.playerNumber].y = pGame->pPlayers[cData.playerNumber]->dest.y;
+    sData.monkeys[cData.playerNumber].vx = pGame->pPlayers[cData.playerNumber]->source.x;
+    sData.monkeys[cData.playerNumber].vy = pGame->pPlayers[cData.playerNumber]->source.y;
+    sData.numberOfPlayers = pGame->num_players;
+    memcpy(pGame->pPacket->data, &(sData), sizeof(ServerData));
+	pGame->pPacket->len = sizeof(ServerData);
+    pGame->pPacket->address = pGame->serverAddress[cData.playerNumber];
+    printf("Sending data to player %d\n", cData.playerNumber);
+    printf("%d", pGame->pPacket->address.host);
+	if(0==SDLNet_UDP_Send(pGame->pSocket,-1,pGame->pPacket)) printf("SDLNet_UDP_Send: %s\n", SDLNet_GetError());
 }
 
 void close(Game *pGame){
