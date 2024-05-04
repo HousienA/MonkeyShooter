@@ -24,5 +24,5 @@ bullet.o: $(COMMONSRCDIR)/bullet.c $(INCDIR)/bullet.h $(INCDIR)/netdata.h
 	gcc -c $(INCLUDE) $(COMMONSRCDIR)/bullet.c
 
 clean:
-	rm rocket
+	rm characterClient
 	rm *.o

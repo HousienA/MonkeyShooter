@@ -254,7 +254,7 @@ void handle_input(Game *pGame) {
             button = SDL_GetMouseState(&mouseX, &mouseY);
 
             if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){  pGame->state = ONGOING;  
-                    cData.command=READY;
+                    cData.command[0]=READY;
                     cData.playerNumber= pGame->playerNumber;
                     memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
 		            pGame->pPacket->len = sizeof(ClientData);
@@ -277,40 +277,40 @@ void handle_input(Game *pGame) {
         case ONGOING:
             if (state[SDL_SCANCODE_A]) {
                 turnLeft(pGame->pPlayers[ pGame->playerNumber]);
-                cData.command = LEFT;
+                cData.command[3] = LEFT;
                 if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
                     turnRight(pGame->pPlayers[pGame->playerNumber]);
-                    cData.command = BLOCKED;
+                    cData.command[6] = BLOCKED;
                 }
             }
             if (state[SDL_SCANCODE_D]) {
                 turnRight(pGame->pPlayers[pGame->playerNumber]);
-                cData.command = RIGHT;
+                cData.command[4] = RIGHT;
                 if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
                     turnLeft(pGame->pPlayers[pGame->playerNumber]);
-                    cData.command = BLOCKED;
+                    cData.command[6] = BLOCKED;
                 }
             }
             if (state[SDL_SCANCODE_W]) {
                 turnUp(pGame->pPlayers[pGame->playerNumber]);
-                cData.command = UP;
+                cData.command[1] = UP;
                 if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
                     turnDown(pGame->pPlayers[pGame->playerNumber]);
-                    cData.command = BLOCKED;
+                    cData.command[6] = BLOCKED;
                 }
             }
             if (state[SDL_SCANCODE_S]) {
                 turnDown(pGame->pPlayers[pGame->playerNumber]);
-                cData.command = DOWN;
+                cData.command[2] = DOWN;
                 if (checkCollision(pGame->pPlayers[pGame->playerNumber], walls, sizeof(walls) / sizeof(walls[0]))) {
                     turnUp(pGame->pPlayers[pGame->playerNumber]);
-                    cData.command = BLOCKED;
+                    cData.command[6] = BLOCKED;
                 }
             }
             if (SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK && !mouseClick && currentTime - lastShootTime >= 1000) {
                 // Shoot a bullet with location in respect to viewport 
                 handleBulletCreation(pGame, x, y);
-                cData.command = FIRE;              
+                cData.command[5] = FIRE;              
                 lastShootTime = currentTime;
             } else if (!(SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK)) { // If the button is not pressed, reset the flag
                 mouseClick = 0;

@@ -295,25 +295,14 @@ void add(IPaddress address, IPaddress clients[],int *pNrOfClients){
 }
 
 void executeCommand(Game *pGame,ClientData cData){
-    switch (cData.command)
-    {
-        case UP:
-            turnUp(pGame->pPlayers[cData.playerNumber]);
-            break;
-        case DOWN:
-            turnDown(pGame->pPlayers[cData.playerNumber]);
-            break;
-        case LEFT:
-            turnLeft(pGame->pPlayers[cData.playerNumber]);
-            break;
-        case RIGHT:
-            turnRight(pGame->pPlayers[cData.playerNumber]);
-            break;
-        case FIRE:
-            //createBullet(pGame->pPlayers[cData.playerNumber],cData.monkey.);
-            break;
-        default: break;
-    }
+    
+
+    if(cData.command[1]==UP&& cData.command[6]!=BLOCKED) turnUp(pGame->pPlayers[cData.playerNumber]);
+    if(cData.command[2]==DOWN&& cData.command[6]!=BLOCKED) turnDown(pGame->pPlayers[cData.playerNumber]);
+    if(cData.command[3]==LEFT&& cData.command[6]!=BLOCKED) turnLeft(pGame->pPlayers[cData.playerNumber]);
+    if(cData.command[4]==RIGHT&& cData.command[6]!=BLOCKED) turnRight(pGame->pPlayers[cData.playerNumber]);
+        
+
      if (cData.playerNumber < 0 || cData.playerNumber >= MAX_PLAYERS) {
         printf("Error: Invalid player number %d\n", cData.playerNumber);
         return;
