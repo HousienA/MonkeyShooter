@@ -142,7 +142,7 @@ int intializeWindow(Game *pGame) {
     }
 
     // Load the background image with error if it doens't work
-    pGame->background = IMG_LoadTexture(pGame->pRenderer, "../lib/resources/map1_2.png");
+    pGame->background = IMG_LoadTexture(pGame->pRenderer, "../lib/resources/monkeyMap.png");
     if (!pGame->background) {
         printf("Error loading background image: %s\n", IMG_GetError());
         return FALSE;
@@ -221,15 +221,19 @@ void handle_settings(Game *pGame, const Uint8 *state) {
     if (state[SDL_SCANCODE_1] && pGame->slotsTaken[0] != 1) {
         pGame->playerNumber = 0; // Player 1
         pGame->slotsTaken[0] = 1;
+        printf("Player number: %d\n", pGame->playerNumber+1);
     } else if (state[SDL_SCANCODE_2] && pGame->slotsTaken[1] != 1) {
         pGame->playerNumber = 1; // Player 2
         pGame->slotsTaken[1] = 1;
+        printf("Player number: %d\n", pGame->playerNumber+1);
     } else if (state[SDL_SCANCODE_3] && pGame->slotsTaken[2] != 1) {
         pGame->playerNumber = 2; // Player 3
         pGame->slotsTaken[2] = 1;
+        printf("Player number: %d\n", pGame->playerNumber+1);
     } else if (state[SDL_SCANCODE_4] && pGame->slotsTaken[3] != 1) {
         pGame->playerNumber = 3; // Player 4
         pGame->slotsTaken[3] = 1;
+        printf("Player number: %d\n", pGame->playerNumber+1);
     }
     printf("Player number: %d\n", pGame->playerNumber);
 }
@@ -420,28 +424,14 @@ void sendData(Game *pGame, ClientData *cData){
     }
 }
 
-/*
-void updateWithServerData(Game *pGame){
-    ServerData sData;
-    memcpy(&sData, pGame->pPacket->data, sizeof(ServerData));
-    
-    pGame->state = sData.gState;
-    pGame->num_bullets = sData.numberOfBullets;
-    pGame->bullets[sData.numberOfBullets] = sData.bullets[sData.numberOfBullets];
-    for(int i=0;i<MAX_PLAYERS;i++){
-        pGame->slotsTaken[i] = sData.slotsTaken[i];
-        updateMonkeysWithRecievedData(pGame->pPlayers[i],&(sData.monkeys[i]));
-    }
-}   
-*/
 
 void updateWithServerData(Game *pGame){
     if(SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket)){
         ServerData sData;
         memcpy(&sData, pGame->pPacket->data, sizeof(ServerData));
         pGame->state = sData.gState;
-        printf("monkey 0%d x: %f, y: %f\n", 0, sData.monkeys[0].x, sData.monkeys[0].y);
-        printf("monkey 1%d x: %f, y: %f\n", 1, sData.monkeys[1].x, sData.monkeys[1].y);
+        printf("monkey 0%d x: %d, y: %d\n", 0, sData.monkeys[0].x, sData.monkeys[0].y);
+        printf("monkey 1%d x: %d, y: %d\n", 1, sData.monkeys[1].x, sData.monkeys[1].y);
         for(int i=0;i<sData.numberOfPlayers;i++){
             if(i!=pGame->playerNumber){
                 updateMonkeysWithRecievedData(pGame->pPlayers[i],&(sData.monkeys[i]));
@@ -475,4 +465,6 @@ void close(Game *pGame){
 void updateMonkeysWithRecievedData(Character *pPlayers, MonkeyData *monkeys){
     pPlayers->dest.x = monkeys->x;
     pPlayers->dest.y = monkeys->y;
+    pPlayers->source.x = monkeys->sx;
+    pPlayers->source.y = monkeys->sy;
 }

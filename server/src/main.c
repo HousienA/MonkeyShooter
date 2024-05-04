@@ -103,7 +103,7 @@ int initiate(Game *pGame){
         close(pGame);
         return 0;    
     }
-    pGame->background = IMG_LoadTexture(pGame->pRenderer, "../lib/resources/map1_2.png");
+    pGame->background = IMG_LoadTexture(pGame->pRenderer, "../lib/resources/monkeyMap.png");
     if (!pGame->background) {
         printf("Error loading background image: %s\n", IMG_GetError());
         return FALSE;
@@ -199,8 +199,8 @@ void run(Game *pGame){
             /*
                 for(int i=0;i<MAX_PLAYERS;i++)
                     pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
-                    pGame->pPlayers[cData.playerNumber]->dest.x = cData.monkey.vx;
-                    pGame->pPlayers[cData.playerNumber]->dest.y = cData.monkey.vy;
+                    pGame->pPlayers[cData.playerNumber]->dest.x = cData.monkey.sx;
+                    pGame->pPlayers[cData.playerNumber]->dest.y = cData.monkey.sy;
                 
                 for(int i=0;i<MAX_PLAYERS;i++)
                     renderCharacter(pGame->pPlayers[i], pGame->pRenderer);
@@ -272,8 +272,8 @@ void setUpGame(Game *pGame){
         sData.slotsTaken[i] = pGame->slotsTaken[i];
         sData.monkeys[i].x = pGame->pPlayers[i]->dest.x;
         sData.monkeys[i].y = pGame->pPlayers[i]->dest.y;
-        sData.monkeys[i].vx = pGame->pPlayers[i]->source.x;
-        sData.monkeys[i].vy = pGame->pPlayers[i]->source.y;
+        sData.monkeys[i].sx = pGame->pPlayers[i]->source.x;
+        sData.monkeys[i].sy = pGame->pPlayers[i]->source.y;
         sData.numberOfPlayers = pGame->num_players;
     }
 
@@ -336,8 +336,8 @@ void executeCommand(Game *pGame,ClientData cData){
     sData.slotsTaken[cData.playerNumber] = pGame->slotsTaken[cData.playerNumber];
     sData.monkeys[cData.playerNumber].x = pGame->pPlayers[cData.playerNumber]->dest.x;
     sData.monkeys[cData.playerNumber].y = pGame->pPlayers[cData.playerNumber]->dest.y;
-    sData.monkeys[cData.playerNumber].vx = pGame->pPlayers[cData.playerNumber]->source.x;
-    sData.monkeys[cData.playerNumber].vy = pGame->pPlayers[cData.playerNumber]->source.y;
+    sData.monkeys[cData.playerNumber].sx = pGame->pPlayers[cData.playerNumber]->source.x;
+    sData.monkeys[cData.playerNumber].sy = pGame->pPlayers[cData.playerNumber]->source.y;
     sData.numberOfPlayers = pGame->num_players;
     memcpy(pGame->pPacket->data, &(sData), sizeof(ServerData));
 	pGame->pPacket->len = sizeof(ServerData);
