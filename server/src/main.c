@@ -55,19 +55,7 @@ void executeCommand(Game *pGame,ClientData cData);
 void setUpGame(Game *pGame);
 void acceptClients(Game *pGame);
 
-void renderCharacters(Game *pGame){
-    for(int i = 0; i < pGame->num_players; i++){
-        Character *character = pGame->pPlayers[i];
-        SDL_Rect characterDest = {
-            pGame->pPlayers[i]->dest.x ,//- pGame->viewport.x,
-            pGame->pPlayers[i]->dest.y ,//- pGame->viewport.y,
-            pGame->pPlayers[i]->dest.w,
-            pGame->pPlayers[i]->dest.h
-        };
-        printf("Player: x: %d, y: %d\n", characterDest.x, characterDest.y);
-        SDL_RenderCopyEx(pGame->pRenderer, character->tex, &character->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
-    }
-}
+ 
 
 int main(int argv, char** args){
     Game g={0};
@@ -152,8 +140,6 @@ int initiate(Game *pGame){
    
     pGame->state = MENU;
     pGame->num_players = 0;
-
-    
     return 1;
 }
 
@@ -170,14 +156,25 @@ void acceptClients(Game *pGame){
         }
     }
 }
+void renderCharacters(Game *pGame){
+    for(int i = 0; i < pGame->num_players; i++){
+        Character *character = pGame->pPlayers[i];
+        SDL_Rect characterDest = {
+            pGame->pPlayers[i]->dest.x ,//- pGame->viewport.x,
+            pGame->pPlayers[i]->dest.y ,//- pGame->viewport.y,
+            pGame->pPlayers[i]->dest.w,
+            pGame->pPlayers[i]->dest.h
+        };
+        printf("Player: x: %d, y: %d\n", characterDest.x, characterDest.y);
+        SDL_RenderCopyEx(pGame->pRenderer, character->tex, &character->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
+    }
+}
 
 
 void run(Game *pGame){
     int close_requested = 0;
     SDL_Event event;
     ClientData cData;
-
-
     while(!close_requested){
        
 
