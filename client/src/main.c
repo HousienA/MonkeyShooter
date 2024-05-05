@@ -48,7 +48,7 @@ void process_input(Game *pGame,SDL_Event *pEvent);
 void run(Game *pGame);
 void close(Game *pGame);
 void renderHealthBar(Character *pPlayers[MAX_PLAYERS], SDL_Renderer *renderer, int playerNumber);
-void handleBulletCreation(Game *pGame, int x, int y);
+void handleBulletCreation(Game *pGame, int x, int y, ClientData *cData);
 void handle_settings(Game *pGame, const Uint8 *state);
 void initializeCharacters(Game *pGame);
 void renderCharacters(Game *pGame);
@@ -86,7 +86,7 @@ int initializeNetwork(Game *pGame){
     }
 
     // Allocate memory for the UDP packet
-    pGame->pPacket = SDLNet_AllocPacket(200);
+    pGame->pPacket = SDLNet_AllocPacket(10000);
     if (!pGame->pPacket) {
         printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
         SDLNet_UDP_Close(pGame->pSocket); // Close the socket
@@ -201,7 +201,7 @@ void renderCharacters(Game *pGame){
 }
 
 //function to handle the creation of bullets
-void handleBulletCreation(Game *pGame, int x, int y) {
+void handleBulletCreation(Game *pGame, int x, int y, ClientData *cData) {
     float bulletStartX = pGame->pPlayers[pGame->playerNumber]->dest.x + pGame->pPlayers[pGame->playerNumber]->dest.w / 2;
     float bulletStartY = pGame->pPlayers[pGame->playerNumber]->dest.y + pGame->pPlayers[pGame->playerNumber]->dest.h / 2;
     pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, bulletStartX, bulletStartY);
@@ -212,6 +212,10 @@ void handleBulletCreation(Game *pGame, int x, int y) {
         float mag = sqrtf(dx * dx + dy * dy);
         pGame->bullets[pGame->num_bullets]->dx = dx / mag * BULLET_SPEED;
         pGame->bullets[pGame->num_bullets]->dy = dy / mag * BULLET_SPEED;
+        cData->bulletStartX = bulletStartX;
+        cData->bulletStartY = bulletStartY;
+        cData->bulletDx = pGame->bullets[pGame->num_bullets]->dx;
+        cData->bulletDy = pGame->bullets[pGame->num_bullets]->dy;
         pGame->num_bullets++;
     }
 }
@@ -240,7 +244,7 @@ void handle_settings(Game *pGame, const Uint8 *state) {
 
 //function to run the game with events linked to the main struct
 void handle_input(Game *pGame) {
-    ClientData cData;
+    ClientData cData= {0}; 
     static Uint32 lastShootTime = 0; // Variable to store the time of the last shot
     Uint32 currentTime = SDL_GetTicks(); // Get the current time in milliseconds
     int close_requested = FALSE;	
@@ -248,6 +252,7 @@ void handle_input(Game *pGame) {
     int mouseX, mouseY, button;
     int x,y;
     static int mouseClick = 0;
+    
 
     switch(pGame->state){
         case MENU:
@@ -309,7 +314,7 @@ void handle_input(Game *pGame) {
             }
             if (SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK && !mouseClick && currentTime - lastShootTime >= 1000) {
                 // Shoot a bullet with location in respect to viewport 
-                handleBulletCreation(pGame, x, y);
+                handleBulletCreation(pGame, x, y, &cData);
                 cData.command[5] = FIRE;              
                 lastShootTime = currentTime;
             } else if (!(SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK)) { // If the button is not pressed, reset the flag
@@ -418,6 +423,7 @@ void sendData(Game *pGame, ClientData *cData){
         cData->monkey.x = pGame->pPlayers[cData->playerNumber]->dest.x;
         cData->monkey.y = pGame->pPlayers[cData->playerNumber]->dest.y;
         cData->monkey.health = pGame->pPlayers[cData->playerNumber]->health;
+        if(cData->command[1]==UP )printf("Clientcommand: up\n");
         
         memcpy(pGame->pPacket->data, cData, sizeof(ClientData));
         SDLNet_UDP_Send(pGame->pSocket, -1, pGame->pPacket);

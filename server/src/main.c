@@ -117,7 +117,7 @@ int initiate(Game *pGame){
 		close(pGame);
         return 0;
 	}
-	if (!(pGame->pPacket = SDLNet_AllocPacket(200)))
+	if (!(pGame->pPacket = SDLNet_AllocPacket(10000)))
 	{
 		printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
 		close(pGame);
@@ -173,6 +173,7 @@ void renderCharacters(Game *pGame){
 
 void run(Game *pGame){
     int close_requested = 0;
+    pGame->num_bullets = 0; 
     SDL_Event event;
     ClientData cData;
     while(!close_requested){
@@ -188,7 +189,14 @@ void run(Game *pGame){
                 while(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
                     memcpy(&cData, pGame->pPacket->data, sizeof(ClientData));
                     executeCommand(pGame,cData);
+                    
+                    for (int i = 0; i < pGame->num_bullets; i++){
+                        if(pGame->bullets[i] == NULL) continue;
+                        moveBullet(pGame->bullets[i]);
+                        drawBullet(pGame->bullets[i], pGame->pRenderer);
+                    }
                 }
+                
                 
                 if(SDL_PollEvent(&event)) {
                     if(event.type==SDL_QUIT) {
@@ -301,6 +309,14 @@ void executeCommand(Game *pGame,ClientData cData){
     if(cData.command[2]==DOWN&& cData.command[6]!=BLOCKED) turnDown(pGame->pPlayers[cData.playerNumber]);
     if(cData.command[3]==LEFT&& cData.command[6]!=BLOCKED) turnLeft(pGame->pPlayers[cData.playerNumber]);
     if(cData.command[4]==RIGHT&& cData.command[6]!=BLOCKED) turnRight(pGame->pPlayers[cData.playerNumber]);
+    if(cData.command[5]==FIRE){
+        pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, cData.bulletStartX, cData.bulletStartY);
+        if (pGame->bullets[pGame->num_bullets]) {
+            pGame->bullets[pGame->num_bullets]->dx = cData.bulletDx;
+            pGame->bullets[pGame->num_bullets]->dy = cData.bulletDy;
+            pGame->num_bullets++;
+        }
+    }
         
 
      if (cData.playerNumber < 0 || cData.playerNumber >= MAX_PLAYERS) {
