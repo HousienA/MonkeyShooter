@@ -44,7 +44,6 @@ struct game{
 
 int intializeWindow(Game *pGame); //removed renderer argument
 int initializeNetwork(Game *pGame);
-void process_input(Game *pGame,SDL_Event *pEvent);
 void run(Game *pGame);
 void close(Game *pGame);
 void renderHealthBar(Character *pPlayers[MAX_PLAYERS], SDL_Renderer *renderer, int playerNumber);
@@ -195,7 +194,7 @@ void renderCharacters(Game *pGame){
             pGame->pPlayers[i]->dest.w,
             pGame->pPlayers[i]->dest.h
         };
-        printf("Player: x: %d, y: %d\n", characterDest.x, characterDest.y);
+        
         SDL_RenderCopyEx(pGame->pRenderer, character->tex, &character->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
     }
 }
@@ -239,7 +238,6 @@ void handle_settings(Game *pGame, const Uint8 *state) {
         pGame->slotsTaken[3] = 1;
         printf("Player number: %d\n", pGame->playerNumber+1);
     }
-    printf("Player number: %d\n", pGame->playerNumber);
 }
 
 //function to run the game with events linked to the main struct
@@ -373,10 +371,6 @@ void run(Game *pGame) {
             printf("Error receiving data: %s\n", SDLNet_GetError());
         }
 
-        for(int i = 0; i < 4; i++){
-            printf("Player %d: x: %d, y: %d\n", i, pGame->pPlayers[i]->dest.x, pGame->pPlayers[i]->dest.y);
-        }
-
         // Render the game
         SDL_RenderClear(pGame->pRenderer);
 
@@ -437,7 +431,7 @@ void sendData(Game *pGame, ClientData *cData){
         cData->monkey.x = pGame->pPlayers[cData->playerNumber]->dest.x;
         cData->monkey.y = pGame->pPlayers[cData->playerNumber]->dest.y;
         cData->monkey.health = pGame->pPlayers[cData->playerNumber]->health;
-        if(cData->command[1]==UP )printf("Clientcommand: up\n");
+        
         
         memcpy(pGame->pPacket->data, cData, sizeof(ClientData));
         SDLNet_UDP_Send(pGame->pSocket, -1, pGame->pPacket);
@@ -450,8 +444,6 @@ void updateWithServerData(Game *pGame){
         ServerData sData;
         memcpy(&sData, pGame->pPacket->data, sizeof(ServerData));
         pGame->state = sData.gState;
-        printf("monkey 0%d x: %d, y: %d\n", 0, sData.monkeys[0].x, sData.monkeys[0].y);
-        printf("monkey 1%d x: %d, y: %d\n", 1, sData.monkeys[1].x, sData.monkeys[1].y);
         for(int i=0;i<sData.numberOfPlayers;i++){
             if(i!=pGame->playerNumber){
                 updateMonkeysWithRecievedData(pGame->pPlayers[i],&(sData.monkeys[i]));
@@ -487,4 +479,5 @@ void updateMonkeysWithRecievedData(Character *pPlayers, MonkeyData *monkeys){
     pPlayers->dest.y = monkeys->y;
     pPlayers->source.x = monkeys->sx;
     pPlayers->source.y = monkeys->sy;
+    
 }

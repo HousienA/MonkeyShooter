@@ -49,7 +49,6 @@ struct game{
 int initiate(Game *pGame);
 void run(Game *pGame);
 void close(Game *pGame);
-void handleInput(Game *pGame,SDL_Event *pEvent);
 void add(IPaddress address, IPaddress clients[],int *pNrOfClients);
 void sendGameData(Game *pGame);
 void executeCommand(Game *pGame,ClientData cData);
@@ -278,27 +277,6 @@ void setUpGame(Game *pGame){
     pGame->state = ONGOING;
 }
 
-/*void sendGameData(Game *pGame){
-    ServerData sData;
-    sData.gState = pGame->state;
-    for(int i=0;i<MAX_MONKEYS;i++){
-        sData.slotsTaken[i] = pGame->slotsTaken[i];
-        sData.monkeys[i].x = pGame->pPlayers[i]->dest.x;
-        sData.monkeys[i].y = pGame->pPlayers[i]->dest.y;
-        sData.monkeys[i].sx = pGame->pPlayers[i]->source.x;
-        sData.monkeys[i].sy = pGame->pPlayers[i]->source.y;
-        sData.numberOfPlayers = pGame->num_players;
-    }
-
-    for(int i=0;i<MAX_MONKEYS;i++){
-        memcpy(pGame->pPacket->data, &(sData), sizeof(ServerData));
-		pGame->pPacket->len = sizeof(ServerData);
-        pGame->pPacket->address = pGame->serverAddress[i];
-        printf("Sending data to player %d\n", i);
-        printf("%d", pGame->pPacket->address.host);
-		if(0==SDLNet_UDP_Send(pGame->pSocket,-1,pGame->pPacket)) printf("SDLNet_UDP_Send: %s\n", SDLNet_GetError());
-    }
-}*/
 
 
 void add(IPaddress address, IPaddress clients[],int *pNrOfClients){
@@ -364,6 +342,13 @@ void close(Game *pGame){
     for(int i=0;i<MAX_PLAYERS;i++) if(pGame->pPlayers[i]) destroyCharacter(pGame->pPlayers[i]);
     if(pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
     if(pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
+    
+    for (int i = 0; i < pGame->num_bullets; i++) {
+        if (pGame->bullets[i]) {
+            destroyBullet(pGame->bullets[i]);
+            pGame->bullets[i] = NULL;
+        }
+    }
 
     if(pGame->pPacket) SDLNet_FreePacket(pGame->pPacket);
 	if(pGame->pSocket) SDLNet_UDP_Close(pGame->pSocket);
