@@ -214,8 +214,8 @@ void handleBulletCreation(Game *pGame, int x, int y, ClientData *cData) {
         pGame->bullets[pGame->num_bullets]->dy = dy / mag * BULLET_SPEED;
         cData->bulletStartX = bulletStartX;
         cData->bulletStartY = bulletStartY;
-        cData->bulletDx = pGame->bullets[pGame->num_bullets]->dx;
-        cData->bulletDy = pGame->bullets[pGame->num_bullets]->dy;
+        cData->bulletDx = pGame->bullets[pGame->num_bullets]->dx *100;
+        cData->bulletDy = pGame->bullets[pGame->num_bullets]->dy*100;
         pGame->num_bullets++;
     }
 }
@@ -244,7 +244,7 @@ void handle_settings(Game *pGame, const Uint8 *state) {
 
 //function to run the game with events linked to the main struct
 void handle_input(Game *pGame) {
-    ClientData cData= {0}; 
+    ClientData cData; 
     static Uint32 lastShootTime = 0; // Variable to store the time of the last shot
     Uint32 currentTime = SDL_GetTicks(); // Get the current time in milliseconds
     int close_requested = FALSE;	
@@ -256,6 +256,7 @@ void handle_input(Game *pGame) {
 
     switch(pGame->state){
         case MENU:
+            memset(&cData, 0, sizeof(cData));
             button = SDL_GetMouseState(&mouseX, &mouseY);
 
             if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){  pGame->state = ONGOING;  
@@ -280,6 +281,7 @@ void handle_input(Game *pGame) {
             break;
 
         case ONGOING:
+            memset(&cData, 0, sizeof(cData));
             if (state[SDL_SCANCODE_A]) {
                 turnLeft(pGame->pPlayers[ pGame->playerNumber]);
                 cData.command[3] = LEFT;
@@ -320,7 +322,17 @@ void handle_input(Game *pGame) {
             } else if (!(SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK)) { // If the button is not pressed, reset the flag
                 mouseClick = 0;
             };
-            sendData(pGame, &cData);
+            int commandExists = 0;
+            for(int c = 0; c < 7; c++){
+                if(cData.command[c] != 0) {
+                    commandExists = 1;
+                }
+            }
+            if (commandExists) {
+                sendData(pGame, &cData);
+            }
+            
+            printf("bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX, cData.bulletStartY, cData.bulletDx, cData.bulletDy);
             break;
     }
      if(state[SDL_SCANCODE_ESCAPE]){

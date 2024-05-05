@@ -175,7 +175,7 @@ void run(Game *pGame){
     int close_requested = 0;
     pGame->num_bullets = 0; 
     SDL_Event event;
-    ClientData cData;
+    ClientData cData = {0};
     while(!close_requested){
        
 
@@ -187,16 +187,19 @@ void run(Game *pGame){
                 SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, NULL);
                 renderCharacters(pGame);
                 while(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
+                    if(cData.command[5]==FIRE) printf("fire=on");
                     memcpy(&cData, pGame->pPacket->data, sizeof(ClientData));
+                    printf("in ongoing:bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX, cData.bulletStartY, cData.bulletDx, cData.bulletDy);
                     executeCommand(pGame,cData);
                     
-                    for (int i = 0; i < pGame->num_bullets; i++){
-                        if(pGame->bullets[i] == NULL) continue;
-                        moveBullet(pGame->bullets[i]);
-                        drawBullet(pGame->bullets[i], pGame->pRenderer);
-                    }
+                    
                 }
-                
+                for (int i = 0; i < pGame->num_bullets; i++){
+                    if(pGame->bullets[i] == NULL) continue;
+                    drawBullet(pGame->bullets[i], pGame->pRenderer);
+                    moveBullet(pGame->bullets[i]);
+                        
+                }
                 
                 if(SDL_PollEvent(&event)) {
                     if(event.type==SDL_QUIT) {
@@ -312,12 +315,14 @@ void executeCommand(Game *pGame,ClientData cData){
     if(cData.command[5]==FIRE){
         pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, cData.bulletStartX, cData.bulletStartY);
         if (pGame->bullets[pGame->num_bullets]) {
-            pGame->bullets[pGame->num_bullets]->dx = cData.bulletDx;
-            pGame->bullets[pGame->num_bullets]->dy = cData.bulletDy;
+            pGame->bullets[pGame->num_bullets]->dx = ((float)cData.bulletDx)/100;
+            pGame->bullets[pGame->num_bullets]->dy = ((float)cData.bulletDy)/100;
             pGame->num_bullets++;
+            printf("bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX, cData.bulletStartY, cData.bulletDx, cData.bulletDy);
         }
     }
         
+
 
      if (cData.playerNumber < 0 || cData.playerNumber >= MAX_PLAYERS) {
         printf("Error: Invalid player number %d\n", cData.playerNumber);
