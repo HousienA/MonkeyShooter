@@ -212,10 +212,10 @@ void handleBulletCreation(Game *pGame, int x, int y, ClientData *cData) {
         float mag = sqrtf(dx * dx + dy * dy);
         pGame->bullets[pGame->num_bullets]->dx = dx / mag * BULLET_SPEED;
         pGame->bullets[pGame->num_bullets]->dy = dy / mag * BULLET_SPEED;
-        cData->bulletStartX = bulletStartX;
-        cData->bulletStartY = bulletStartY;
-        cData->bulletDx = pGame->bullets[pGame->num_bullets]->dx *100;
-        cData->bulletDy = pGame->bullets[pGame->num_bullets]->dy*100;
+        cData->bulletStartX[pGame->playerNumber] = bulletStartX;
+        cData->bulletStartY[pGame->playerNumber] = bulletStartY;
+        cData->bulletDx[pGame->playerNumber] = pGame->bullets[pGame->num_bullets]->dx *100;
+        cData->bulletDy[pGame->playerNumber] = pGame->bullets[pGame->num_bullets]->dy*100;
         pGame->num_bullets++;
     }
 }
@@ -261,7 +261,7 @@ void handle_input(Game *pGame) {
 
             if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){  pGame->state = ONGOING;  
                     cData.command[0]=READY;
-                    cData.playerNumber= pGame->playerNumber;
+                    cData.playerNumber = pGame->playerNumber;
                     memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
 		            pGame->pPacket->len = sizeof(ClientData);
                     SDLNet_UDP_Send(pGame->pSocket, -1,pGame->pPacket);
@@ -324,11 +324,13 @@ void handle_input(Game *pGame) {
             };
             int commandExists = 0;
             for(int c = 0; c < 7; c++){
-                if(cData.command[c] != 0) {
+                if(cData.command[c]==FIRE || cData.command[c]==UP || cData.command[c]==DOWN || cData.command[c]==LEFT || cData.command[c]==RIGHT || cData.command[c]==BLOCKED) {
                     commandExists = 1;
                 }
             }
             if (commandExists) {
+                memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
+		        pGame->pPacket->len = sizeof(ClientData);
                 sendData(pGame, &cData);
             }
             

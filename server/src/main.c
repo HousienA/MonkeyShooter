@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
@@ -165,7 +166,6 @@ void renderCharacters(Game *pGame){
             pGame->pPlayers[i]->dest.w,
             pGame->pPlayers[i]->dest.h
         };
-        printf("Player: x: %d, y: %d\n", characterDest.x, characterDest.y);
         SDL_RenderCopyEx(pGame->pRenderer, character->tex, &character->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
     }
 }
@@ -186,11 +186,13 @@ void run(Game *pGame){
                 //sendGameData(pGame);
                 SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, NULL);
                 renderCharacters(pGame);
-                while(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
+                if(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
+                    
                     if(cData.command[5]==FIRE) printf("fire=on");
                     memcpy(&cData, pGame->pPacket->data, sizeof(ClientData));
-                    printf("in ongoing:bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX, cData.bulletStartY, cData.bulletDx, cData.bulletDy);
+                    printf("in ongoing:bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX[cData.playerNumber], cData.bulletStartY[cData.playerNumber], cData.bulletDx[cData.playerNumber], cData.bulletDy[cData.playerNumber]);
                     executeCommand(pGame,cData);
+                    memset(&cData, 0, sizeof(cData));
                     
                     
                 }
@@ -313,12 +315,14 @@ void executeCommand(Game *pGame,ClientData cData){
     if(cData.command[3]==LEFT&& cData.command[6]!=BLOCKED) turnLeft(pGame->pPlayers[cData.playerNumber]);
     if(cData.command[4]==RIGHT&& cData.command[6]!=BLOCKED) turnRight(pGame->pPlayers[cData.playerNumber]);
     if(cData.command[5]==FIRE){
-        pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, cData.bulletStartX, cData.bulletStartY);
+        printf("%d,cData.playerNumber in fire func\n", cData.playerNumber);
+        pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, cData.bulletStartX[cData.playerNumber], cData.bulletStartY[cData.playerNumber]);
         if (pGame->bullets[pGame->num_bullets]) {
-            pGame->bullets[pGame->num_bullets]->dx = ((float)cData.bulletDx)/100;
-            pGame->bullets[pGame->num_bullets]->dy = ((float)cData.bulletDy)/100;
+            pGame->bullets[pGame->num_bullets]->dx = ((float)cData.bulletDx[cData.playerNumber])/100;
+            pGame->bullets[pGame->num_bullets]->dy = ((float)cData.bulletDy[cData.playerNumber])/100;
             pGame->num_bullets++;
-            printf("bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX, cData.bulletStartY, cData.bulletDx, cData.bulletDy);
+            printf("bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX[cData.playerNumber], cData.bulletStartY[cData.playerNumber], cData.bulletDx[cData.playerNumber], cData.bulletDy[cData.playerNumber]);
+            return;
         }
     }
         
@@ -339,8 +343,7 @@ void executeCommand(Game *pGame,ClientData cData){
 
     //Update player data
     //pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
-    printf("pGame->pPlayers[%d]->dest.x: %d\n", cData.playerNumber, pGame->pPlayers[cData.playerNumber]->dest.x);
-    printf("pGame->pPlayers[%d]->dest.y: %d\n", cData.playerNumber, pGame->pPlayers[cData.playerNumber]->dest.y);
+    
     ServerData sData;
     sData.gState = pGame->state;
     sData.slotsTaken[cData.playerNumber] = pGame->slotsTaken[cData.playerNumber];
@@ -352,9 +355,9 @@ void executeCommand(Game *pGame,ClientData cData){
     memcpy(pGame->pPacket->data, &(sData), sizeof(ServerData));
 	pGame->pPacket->len = sizeof(ServerData);
     pGame->pPacket->address = pGame->serverAddress[cData.playerNumber];
-    printf("Sending data to player %d\n", cData.playerNumber);
     printf("%d", pGame->pPacket->address.host);
 	if(0==SDLNet_UDP_Send(pGame->pSocket,-1,pGame->pPacket)) printf("SDLNet_UDP_Send: %s\n", SDLNet_GetError());
+    
 }
 
 void close(Game *pGame){
