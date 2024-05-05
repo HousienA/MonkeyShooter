@@ -85,7 +85,7 @@ int initializeNetwork(Game *pGame){
     }
 
     // Allocate memory for the UDP packet
-    pGame->pPacket = SDLNet_AllocPacket(10000);
+    pGame->pPacket = SDLNet_AllocPacket(512);
     if (!pGame->pPacket) {
         printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
         SDLNet_UDP_Close(pGame->pSocket); // Close the socket
@@ -170,7 +170,7 @@ int intializeWindow(Game *pGame) {
 }
 
 void initializeCharacters(Game *pGame){
-    pGame->num_players = 4;
+    pGame->num_players = 2;
     // Initialize additional player characters
     for(int i = 0; i < pGame->num_players; i++){
         pGame->pPlayers[i] = createCharacter(pGame->pRenderer);
