@@ -213,8 +213,8 @@ void handleBulletCreation(Game *pGame, int x, int y, ClientData *cData) {
         pGame->bullets[pGame->num_bullets]->dy = dy / mag * BULLET_SPEED;
         cData->bulletStartX[pGame->playerNumber] = bulletStartX;
         cData->bulletStartY[pGame->playerNumber] = bulletStartY;
-        cData->bulletDx[pGame->playerNumber] = pGame->bullets[pGame->num_bullets]->dx *100;
-        cData->bulletDy[pGame->playerNumber] = pGame->bullets[pGame->num_bullets]->dy*100;
+        cData->bulletDx[pGame->playerNumber] = pGame->bullets[pGame->num_bullets]->dx;
+        cData->bulletDy[pGame->playerNumber] = pGame->bullets[pGame->num_bullets]->dy;
         pGame->num_bullets++;
     }
 }
@@ -451,6 +451,12 @@ void updateWithServerData(Game *pGame){
                 updateMonkeysWithRecievedData(pGame->pPlayers[i],&(sData.monkeys[i]));
             }
         }
+        if(sData.numberOfBullets > pGame->num_bullets && sData.whoShot != pGame->playerNumber){
+            pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, sData.bulletStartX, sData.bulletStartY);
+            pGame->bullets[pGame->num_bullets]->dx = sData.bulletDx;
+            pGame->bullets[pGame->num_bullets]->dy = sData.bulletDy;
+            pGame->num_bullets++;
+        }
     }
 }
 
@@ -481,6 +487,7 @@ void updateMonkeysWithRecievedData(Character *pPlayers, MonkeyData *monkeys){
     pPlayers->dest.y = monkeys->y;
     pPlayers->source.x = monkeys->sx;
     pPlayers->source.y = monkeys->sy;
-    pPlayers->health = monkeys->health;
+
+
     
 }

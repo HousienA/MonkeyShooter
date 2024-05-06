@@ -50,9 +50,9 @@ int initiate(Game *pGame);
 void run(Game *pGame);
 void close(Game *pGame);
 void add(IPaddress address, IPaddress clients[],int *pNrOfClients);
-void sendGameData(Game *pGame);
+void sendGameData(Game *pGame, ClientData cData);
 void executeCommand(Game *pGame,ClientData cData);
-void acceptClients(Game *pGame);
+void acceptClients(Game *pGame, ClientData cData);
 
  
 
@@ -142,13 +142,13 @@ int initiate(Game *pGame){
     return 1;
 }
 
-void acceptClients(Game *pGame){
+void acceptClients(Game *pGame, ClientData cData){
     while(pGame->num_players < MAX_PLAYERS) {
         // Receive UDP packets
         if(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1) {
             // Add the player
             add(pGame->pPacket->address, pGame->serverAddress, &(pGame->num_players));
-            sendGameData(pGame);
+            sendGameData(pGame, cData);
         } else {
             // No incoming packets, break out of the loop
             break;
@@ -173,7 +173,7 @@ void run(Game *pGame){
     int close_requested = 0;
     pGame->num_bullets = 0; 
     SDL_Event event;
-    ClientData cData = {0};
+    ClientData cData = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     while(!close_requested){
        
 
@@ -181,7 +181,7 @@ void run(Game *pGame){
         {
             case ONGOING:
                 //printf("Game is ongoing\n");
-                sendGameData(pGame);
+                sendGameData(pGame,cData);
                 SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, NULL);
                 renderCharacters(pGame);
                 if(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
@@ -190,7 +190,7 @@ void run(Game *pGame){
                     memcpy(&cData, pGame->pPacket->data, sizeof(ClientData));
                     printf("in ongoing:bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX[cData.playerNumber], cData.bulletStartY[cData.playerNumber], cData.bulletDx[cData.playerNumber], cData.bulletDy[cData.playerNumber]);
                     executeCommand(pGame,cData);
-                    sendGameData(pGame);
+                    sendGameData(pGame, cData);
                     memset(&cData, 0, sizeof(cData));
                     
                     
@@ -243,10 +243,10 @@ void run(Game *pGame){
                 sendGameData(pGame);
                 if(pGame->num_players==MAX_PLAYERS) pGame->num_players = 0;*/
             case MENU:
-                acceptClients(pGame);
+                acceptClients(pGame, cData);
                 drawText(pGame->pWaitingText);
                 SDL_RenderPresent(pGame->pRenderer);
-                sendGameData(pGame);
+                sendGameData(pGame, cData);
                 
                 //printf("Waiting for players\n");
                 if(SDL_PollEvent(&event) && event.type==SDL_QUIT) {
@@ -286,9 +286,10 @@ void executeCommand(Game *pGame,ClientData cData){
         printf("%d,cData.playerNumber in fire func\n", cData.playerNumber);
         pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, cData.bulletStartX[cData.playerNumber], cData.bulletStartY[cData.playerNumber]);
         if (pGame->bullets[pGame->num_bullets]) {
-            pGame->bullets[pGame->num_bullets]->dx = ((float)cData.bulletDx[cData.playerNumber])/100;
-            pGame->bullets[pGame->num_bullets]->dy = ((float)cData.bulletDy[cData.playerNumber])/100;
+            pGame->bullets[pGame->num_bullets]->dx = cData.bulletDx[cData.playerNumber];
+            pGame->bullets[pGame->num_bullets]->dy = cData.bulletDy[cData.playerNumber];
             pGame->num_bullets++;
+            sendGameData(pGame,cData);
             printf("bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX[cData.playerNumber], cData.bulletStartY[cData.playerNumber], cData.bulletDx[cData.playerNumber], cData.bulletDy[cData.playerNumber]);
             return;
         }
@@ -316,7 +317,7 @@ void executeCommand(Game *pGame,ClientData cData){
     
 }
 
-void sendGameData(Game *pGame){
+void sendGameData(Game *pGame,ClientData cData){
     ServerData sData;
     sData.gState = pGame->state;
     for(int i=0;i<MAX_MONKEYS;i++){
@@ -325,8 +326,18 @@ void sendGameData(Game *pGame){
         sData.monkeys[i].y = pGame->pPlayers[i]->dest.y;
         sData.monkeys[i].sx = pGame->pPlayers[i]->source.x;
         sData.monkeys[i].sy = pGame->pPlayers[i]->source.y;
+        sData.whoShot = cData.playerNumber;
+        
+        
+    }
+    if(pGame->num_bullets>0){
+    sData.bulletDx = pGame->bullets[pGame->num_bullets-1]->dx;
+    sData.bulletDy = pGame->bullets[pGame->num_bullets-1]->dy;
+    sData.bulletStartX = pGame->bullets[pGame->num_bullets-1]->x;
+    sData.bulletStartY = pGame->bullets[pGame->num_bullets-1]->y;
     }
     sData.numberOfPlayers = pGame->num_players;
+    
     memcpy(pGame->pPacket->data, &(sData), sizeof(ServerData));
     pGame->pPacket->len = sizeof(ServerData);
     for(int i=0;i<pGame->num_players;i++){
