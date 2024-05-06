@@ -11,8 +11,8 @@
 Character *createCharacter(SDL_Renderer *renderer)
 {
     Character *pCharacter = malloc(sizeof(Character));
-    pCharacter->dest.x = 260;
-    pCharacter->dest.y = 220;
+    pCharacter->dest.x = 120;
+    pCharacter->dest.y = 145;
     pCharacter->dest.w = CHARACTER_WIDTH;
     pCharacter->dest.h = CHARACTER_HEIGHT;
 
