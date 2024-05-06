@@ -224,6 +224,8 @@ void handle_settings(Game *pGame, const Uint8 *state) {
     if (state[SDL_SCANCODE_1] && pGame->slotsTaken[0] != 1) {
         pGame->playerNumber = 0; // Player 1
         pGame->slotsTaken[0] = 1;
+        //pGame->pPlayers[0]->dest.x = 100;
+        //pGame->pPlayers[0]->dest.y = 100;
         printf("Player number: %d\n", pGame->playerNumber+1);
     } else if (state[SDL_SCANCODE_2] && pGame->slotsTaken[1] != 1) {
         pGame->playerNumber = 1; // Player 2
@@ -479,5 +481,6 @@ void updateMonkeysWithRecievedData(Character *pPlayers, MonkeyData *monkeys){
     pPlayers->dest.y = monkeys->y;
     pPlayers->source.x = monkeys->sx;
     pPlayers->source.y = monkeys->sy;
+    pPlayers->health = monkeys->health;
     
 }
