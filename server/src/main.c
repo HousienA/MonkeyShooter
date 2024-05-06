@@ -289,7 +289,6 @@ void executeCommand(Game *pGame,ClientData cData){
             pGame->bullets[pGame->num_bullets]->dx = cData.bulletDx[cData.playerNumber];
             pGame->bullets[pGame->num_bullets]->dy = cData.bulletDy[cData.playerNumber];
             pGame->num_bullets++;
-            sendGameData(pGame,cData);
             printf("bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX[cData.playerNumber], cData.bulletStartY[cData.playerNumber], cData.bulletDx[cData.playerNumber], cData.bulletDy[cData.playerNumber]);
             return;
         }
@@ -330,6 +329,9 @@ void sendGameData(Game *pGame,ClientData cData){
         
         
     }
+
+    //if(cData.command[5]==FIRE) sData.fire = READY;
+    
     if(pGame->num_bullets>0){
     sData.bulletDx = pGame->bullets[pGame->num_bullets-1]->dx;
     sData.bulletDy = pGame->bullets[pGame->num_bullets-1]->dy;
@@ -337,6 +339,7 @@ void sendGameData(Game *pGame,ClientData cData){
     sData.bulletStartY = pGame->bullets[pGame->num_bullets-1]->y;
     }
     sData.numberOfPlayers = pGame->num_players;
+    printf("numberofbullets%d\n", pGame->num_bullets);
     
     memcpy(pGame->pPacket->data, &(sData), sizeof(ServerData));
     pGame->pPacket->len = sizeof(ServerData);

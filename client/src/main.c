@@ -260,6 +260,7 @@ void handle_input(Game *pGame) {
             if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){  pGame->state = ONGOING;  
                     cData.command[0]=READY;
                     cData.playerNumber = pGame->playerNumber;
+                    destroyBullet(pGame->bullets[0]);
                     memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
 		            pGame->pPacket->len = sizeof(ClientData);
                     SDLNet_UDP_Send(pGame->pSocket, -1,pGame->pPacket);
@@ -321,10 +322,19 @@ void handle_input(Game *pGame) {
                 mouseClick = 0;
             };
             int commandExists = 0;
+            int fire= 0;
             for(int c = 0; c < 7; c++){
                 if(cData.command[c]==FIRE || cData.command[c]==UP || cData.command[c]==DOWN || cData.command[c]==LEFT || cData.command[c]==RIGHT || cData.command[c]==BLOCKED) {
                     commandExists = 1;
                 }
+                if(cData.command[c]==FIRE){
+                    fire = 1;
+                }
+
+            }
+            if(!fire){
+                cData.bulletStartX[pGame->playerNumber]=-1;
+                cData.bulletStartY[pGame->playerNumber]=-1;
             }
             if (commandExists) {
                 memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
@@ -332,7 +342,7 @@ void handle_input(Game *pGame) {
                 sendData(pGame, &cData);
             }
             
-            printf("bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX, cData.bulletStartY, cData.bulletDx, cData.bulletDy);
+            
             break;
     }
      if(state[SDL_SCANCODE_ESCAPE]){
@@ -449,11 +459,13 @@ void updateWithServerData(Game *pGame){
                 updateMonkeysWithRecievedData(pGame->pPlayers[i],&(sData.monkeys[i]));
             }
         }
-        if(sData.numberOfBullets > pGame->num_bullets && sData.whoShot != pGame->playerNumber){
+        if(sData.numberOfBullets > pGame->num_bullets && sData.whoShot != pGame->playerNumber && sData.bulletStartY < WINDOW_HEIGHT && sData.bulletStartX < WINDOW_WIDTH && (sData.bulletStartX==(sData.monkeys[sData.whoShot].x)+CHARACTER_WIDTH/2 && sData.monkeys[sData.whoShot].y+CHARACTER_HEIGHT/2)/*&& sData.fire == FIRE*/){
+            printf("Bullet received. Bullet y%f, x%f, dx%f, dy%f\n", sData.bulletStartY, sData.bulletStartX, sData.bulletDx, sData.bulletDy);
             pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, sData.bulletStartX, sData.bulletStartY);
             pGame->bullets[pGame->num_bullets]->dx = sData.bulletDx;
             pGame->bullets[pGame->num_bullets]->dy = sData.bulletDy;
             pGame->num_bullets++;
+            printf("Bullet created%d\n", pGame->num_bullets);
         }
     }
 }

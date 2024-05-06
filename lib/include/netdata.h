@@ -38,6 +38,7 @@ typedef struct bulletData BulletData;
 
 struct serverData{
    MonkeyData monkeys[MAX_MONKEYS];
+   ClientCommand fire;
    int slotsTaken[4], numberOfBullets, numberOfPlayers, whoShot;
    GameState gState;
    float bulletStartX, bulletStartY, bulletDx, bulletDy;
