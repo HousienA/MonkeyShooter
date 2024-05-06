@@ -181,7 +181,7 @@ void run(Game *pGame){
         {
             case ONGOING:
                 //printf("Game is ongoing\n");
-                //sendGameData(pGame);
+                sendGameData(pGame);
                 SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, NULL);
                 renderCharacters(pGame);
                 if(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
@@ -246,6 +246,7 @@ void run(Game *pGame){
                 acceptClients(pGame);
                 drawText(pGame->pWaitingText);
                 SDL_RenderPresent(pGame->pRenderer);
+                sendGameData(pGame);
                 
                 //printf("Waiting for players\n");
                 if(SDL_PollEvent(&event) && event.type==SDL_QUIT) {
