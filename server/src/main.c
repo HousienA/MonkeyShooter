@@ -116,7 +116,7 @@ int initiate(Game *pGame){
 		close(pGame);
         return 0;
 	}
-	if (!(pGame->pPacket = SDLNet_AllocPacket(10000)))
+	if (!(pGame->pPacket = SDLNet_AllocPacket(512)))
 	{
 		printf("SDLNet_AllocPacket: %s\n", SDLNet_GetError());
 		close(pGame);
@@ -188,7 +188,6 @@ void run(Game *pGame){
                     
                     if(cData.command[5]==FIRE) printf("fire=on");
                     memcpy(&cData, pGame->pPacket->data, sizeof(ClientData));
-                    printf("in ongoing:bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX[cData.playerNumber], cData.bulletStartY[cData.playerNumber], cData.bulletDx[cData.playerNumber], cData.bulletDy[cData.playerNumber]);
                     executeCommand(pGame,cData);
                     sendGameData(pGame, cData);
                     memset(&cData, 0, sizeof(cData));
@@ -211,11 +210,10 @@ void run(Game *pGame){
             /*
                 for(int i=0;i<MAX_PLAYERS;i++)
                     pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
-                    pGame->pPlayers[cData.playerNumber]->dest.x = cData.monkey.sx;
-                    pGame->pPlayers[cData.playerNumber]->dest.y = cData.monkey.sy;
+                    
                 
                 for(int i=0;i<MAX_PLAYERS;i++)
-                    renderCharacter(pGame->pPlayers[i], pGame->pRenderer);
+                    
 
                 //go through and check if all players are dead
                 int allPlayersDead = 1;
@@ -310,9 +308,7 @@ void executeCommand(Game *pGame,ClientData cData){
     //printf("Player %d position: x=%f, y=%f\n", cData.playerNumber, cData.monkey.x, cData.monkey.y);
 
     //Update player data
-    //pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
-    
-    
+    pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
     
 }
 
@@ -326,7 +322,7 @@ void sendGameData(Game *pGame,ClientData cData){
         sData.monkeys[i].sx = pGame->pPlayers[i]->source.x;
         sData.monkeys[i].sy = pGame->pPlayers[i]->source.y;
         sData.whoShot = cData.playerNumber;
-        
+        sData.monkeys[i].health = pGame->pPlayers[i]->health;
         
     }
 

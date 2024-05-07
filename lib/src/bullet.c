@@ -37,16 +37,17 @@ void drawBullet(Bullet *bullet, SDL_Renderer *renderer) {
 
 bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter) {
     // Calculate the bounding box for the bullet
-    int bulletLeft = bullet->x;
-    int bulletRight = bullet->x + 5; // Assuming bullet width is 5
-    int bulletTop = bullet->y;
-    int bulletBottom = bullet->y + 5; // Assuming bullet height is 5
+    float bulletLeft = bullet->x;
+    float bulletRight = bullet->x + 5; // Assuming bullet width is 5
+    float bulletTop = bullet->y;
+    float bulletBottom = bullet->y + 5; // Assuming bullet height is 5
 
     // Calculate the bounding box for the character
     int characterLeft = pCharacter->dest.x;
     int characterRight = pCharacter->dest.x + CHARACTER_WIDTH;
     int characterTop = pCharacter->dest.y;
     int characterBottom = pCharacter->dest.y - CHARACTER_HEIGHT;
+    printf("Bullet: %d %d %d %d\n", bulletLeft, bulletRight, bulletTop, bulletBottom);
 
     // Check for collision
     if (bulletRight >= characterLeft && bulletLeft <= characterRight &&
@@ -54,6 +55,7 @@ bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter) {
         // Collision detected
         return true;
     }
-
     return false;
+
+    
 }
