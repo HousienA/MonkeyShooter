@@ -1,5 +1,6 @@
 #include "../include/character.h"
 #include "../include/bullet.h"
+#include  "../include/netdata.h"
 #include <stdlib.h>
 #include <math.h>
 
@@ -13,7 +14,7 @@ Bullet* createBullet(SDL_Renderer *renderer, float startX, float startY) {
     bullet->y = startY;
     bullet->dx = 0; 
     bullet->dy = 0;
-
+    bullet->lifeTime = SDL_GetTicks();
     return bullet;
 }
 
@@ -58,4 +59,18 @@ bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter) {
     return false;
 
     
+}
+
+void SendDataBullet(Bullet *bullet, BulletData *pBullet) {
+    pBullet->x = bullet->x;
+    pBullet->y = bullet->y;
+    pBullet->dx = bullet->dx;
+    pBullet->dy = bullet->dy;
+}
+
+void updateBulletFromServer(Bullet *bullet, BulletData *pBullet) {
+    bullet->x = pBullet->x;
+    bullet->y = pBullet->y;
+    bullet->dx = pBullet->dx;
+    bullet->dy = pBullet->dy;
 }

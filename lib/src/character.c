@@ -3,6 +3,7 @@
 #include "../include/game.h"
 #include "../include/world.h"
 #include "../include/bullet.h"
+#include "../include/netdata.h"
 
 #define SPRITE_WIDTH 128
 #define SPRITE_HEIGHT 128
@@ -11,7 +12,7 @@
 Character *createCharacter(SDL_Renderer *renderer)
 {
     Character *pCharacter = malloc(sizeof(Character));
-    pCharacter->dest.x = 120;
+    pCharacter->dest.x = 120; 
     pCharacter->dest.y = 145;
     pCharacter->dest.w = CHARACTER_WIDTH;
     pCharacter->dest.h = CHARACTER_HEIGHT;
@@ -128,4 +129,24 @@ void turnDown(Character *pCharacter)
     pCharacter->dest.y += MOVE_SPEED;
     pCharacter->direction = 0;
     updateCharacterAnimation(pCharacter, 100);
+}
+
+void getCharacterSendData(Character *pCharacter, MonkeyData *pMonkeyData)
+{
+    pMonkeyData->x = pCharacter->dest.x;
+    pMonkeyData->y = pCharacter->dest.y;
+    pMonkeyData->sx = pCharacter->source.x;
+    pMonkeyData->sy = pCharacter->source.y;
+    pMonkeyData->health = pCharacter->health;
+    SendBulletData(pCharacter->bullet, &pMonkeyData->bData);
+}
+
+void updateCharacterFromServer(Character *pCharacter, MonkeyData *pMonkeyData)
+{
+    pCharacter->dest.x = pMonkeyData->x;
+    pCharacter->dest.y = pMonkeyData->y;
+    pCharacter->source.x = pMonkeyData->sx;
+    pCharacter->source.y = pMonkeyData->sy;
+    pCharacter->health = pMonkeyData->health;
+    updateBulletFromServer(pCharacter->bullet, &pMonkeyData->bData);
 }

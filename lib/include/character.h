@@ -19,6 +19,7 @@ typedef struct {
     int currentFrame;
     Uint32 animationTimer;
     int direction; // 0 - down, 1 - left, 2 - right, 3 - up
+    Bullet *bullet;
 } Character;
 
 Character *createCharacter(SDL_Renderer *renderer);
@@ -31,5 +32,7 @@ void turnDown(Character *pCharacter);
 void updateCharacterAnimation(Character *pCharacter, Uint32 deltaTime);
 void renderCharacter(Character *pCharacter, SDL_Renderer *renderer);
 void destroyCharacter(Character *pCharacter);
+void getCharacterSendData(Character *pCharacter, MonkeyData *pMonkey);
+void updateCharacterFromServer(Character *pCharacter, MonkeyData *pMonkey); 
 
 #endif

@@ -16,10 +16,10 @@ typedef enum gameState GameState;
 struct monkeyData{
    float x, y, sx, sy;
    int health;
+   BulletData bData;
    
 };
 
-//client data fails to track position of monkeys, not sending to server correctly
 typedef struct monkeyData MonkeyData;
 struct clientData{
    ClientCommand command[7];//enum READY sparas på plats 0, UP på plats 1 osv
@@ -47,4 +47,4 @@ struct serverData{
 typedef struct serverData ServerData;
 
 
-#endif
+#endif 

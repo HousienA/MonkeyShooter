@@ -33,8 +33,8 @@ struct game{
     SDL_Rect menu_rect;
     GameState state;
     MenuState menuState;
-    Bullet *bullets[1000];
-    int num_bullets, num_players, playerNumber, slotsTaken[MAX_PLAYERS]; // track the number of players in the game
+    Bullet *bullets[200];
+    int num_bullets, num_players, playerNumber, slotsTaken[MAX_MONKEYS]; // track the number of players in the game
 
 
     UDPsocket pSocket;
@@ -77,7 +77,7 @@ int initializeNetwork(Game *pGame){
 		return 0;
 	}
 	// Resolve the server address
-    if (SDLNet_ResolveHost(&(pGame->serverAddress), "130.229.134.58", 2000) == -1) {
+    if (SDLNet_ResolveHost(&(pGame->serverAddress), "127.0.0.1", 2000) == -1) {
         printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
         SDLNet_UDP_Close(pGame->pSocket); // Close the socket
         SDLNet_Quit(); // Cleanup SDLNet
@@ -261,14 +261,8 @@ void handle_input(Game *pGame) {
             memset(&cData, 0, sizeof(cData));
             button = SDL_GetMouseState(&mouseX, &mouseY);
 
-            if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){    
-                    cData.command[0]=READY;
-                    cData.playerNumber = pGame->playerNumber;
-                    memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
-		            pGame->pPacket->len = sizeof(ClientData);
-                    SDLNet_UDP_Send(pGame->pSocket, -1,pGame->pPacket);
-                    pGame->state = ONGOING;
-            }
+            //printf("Player number: %d\n", pGame->playerNumber);
+            if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)) pGame->state = ONGOING;
             else if(mouseX>270 && mouseX<550 && mouseY>400 && mouseY<443 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
             else if(mouseX>288 && mouseX<533 && mouseY>497 && mouseY<541 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = CONFIGURE;
             else if(mouseX>320&& mouseX<499 && mouseY>593 && mouseY<637 &&(button && SDL_BUTTON_LMASK)) close(pGame); // Exit the game
@@ -284,6 +278,11 @@ void handle_input(Game *pGame) {
             break;
 
         case ONGOING:
+            cData.command[0]=READY;
+            cData.playerNumber = pGame->playerNumber;
+            memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
+	        pGame->pPacket->len = sizeof(ClientData);
+            SDLNet_UDP_Send(pGame->pSocket, -1,pGame->pPacket);
             memset(&cData, 0, sizeof(cData));
             if (state[SDL_SCANCODE_A]) {
                 turnLeft(pGame->pPlayers[ pGame->playerNumber]);
@@ -418,24 +417,22 @@ void run(Game *pGame) {
                 }
             
             }
-            for(int i=0; pGame->bullets[i]!=NULL; i++){
-                
-                if(checkCollisionBulletCharacter(pGame->bullets[i], pGame->pPlayers[1])){
-                pGame->pPlayers[1]->health--;
-                
-                
-                }
-                else if(checkCollisionBulletCharacter(pGame->bullets[i], pGame->pPlayers[0])){
-                
-                pGame->pPlayers[0]->health--;
-                 
-                
+            for (int i = 0; i < pGame->num_bullets; i++) {
+                Bullet *bullet = pGame->bullets[i];
+                Uint32 lifeTime = SDL_GetTicks();
+                if (lifeTime - bullet->lifeTime >= 5000) { //5 seconds
+                    destroyBullet(bullet);
+                    for (int j = i; j < pGame->num_bullets - 1; j++) {
+                        pGame->bullets[j] = pGame->bullets[j + 1];
+                    }
+                    pGame->num_bullets--;
+                    i--; // Decrement i to check the same index again
                 }
             }
-            printf("%d",pGame->pPlayers[1]->dest.x);
-            printf("%d",pGame->pPlayers[0]->dest.x);
-    printf("Player 0 health: %d\n", pGame->pPlayers[0]->health);
-    printf("Player 1 health: %d\n", pGame->pPlayers[1]->health);
+            //printf("%d",pGame->pPlayers[1]->dest.x);
+            //printf("%d",pGame->pPlayers[0]->dest.x);
+            //printf("Player 0 health: %d\n", pGame->pPlayers[0]->health);
+            //printf("Player 1 health: %d\n", pGame->pPlayers[1]->health);
             renderHealthBar(pGame->pPlayers, pGame->pRenderer, pGame->playerNumber);
                // Check if character is dead
             if (pGame->pPlayers[pGame->playerNumber]->health <= 0) {

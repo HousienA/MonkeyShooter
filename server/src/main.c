@@ -316,17 +316,11 @@ void sendGameData(Game *pGame,ClientData cData){
     ServerData sData;
     sData.gState = pGame->state;
     for(int i=0;i<MAX_MONKEYS;i++){
+        getCharacterSendData(pGame->pPlayers[i], &(pGame->sData.monkeys[i]));
         sData.slotsTaken[i] = pGame->slotsTaken[i];
-        sData.monkeys[i].x = pGame->pPlayers[i]->dest.x;
-        sData.monkeys[i].y = pGame->pPlayers[i]->dest.y;
-        sData.monkeys[i].sx = pGame->pPlayers[i]->source.x;
-        sData.monkeys[i].sy = pGame->pPlayers[i]->source.y;
         sData.whoShot = cData.playerNumber;
-        sData.monkeys[i].health = pGame->pPlayers[i]->health;
         
     }
-
-    //if(cData.command[5]==FIRE) sData.fire = READY;
     
     if(pGame->num_bullets>0){
     sData.bulletDx = pGame->bullets[pGame->num_bullets-1]->dx;

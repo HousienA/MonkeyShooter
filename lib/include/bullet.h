@@ -1,7 +1,7 @@
 #ifndef BULLET_H
 #define BULLET_H
 #define BULLET_SPEED 5
-#define BULLETLIFETIME 60
+#define BULLETLIFETIME 5
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <stdbool.h>
@@ -17,6 +17,7 @@ typedef struct {
     float dx; // direction vector components
     float dy;
     SDL_Texture *texture;
+    Uint32 lifeTime;
     //SDL_Renderer *renderer;
 } Bullet;
 
@@ -25,5 +26,7 @@ void destroyBullet(Bullet *bullet);
 void moveBullet(Bullet *bullet);
 void drawBullet(Bullet *bullet, SDL_Renderer *renderer);
 bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter);
+void SendBulletData(Bullet *bullet, BulletData *pBullet);
+void updateBulletFromServer(Bullet *bullet, BulletData *pBullet);
 
 #endif
