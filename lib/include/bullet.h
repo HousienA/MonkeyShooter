@@ -16,11 +16,12 @@ typedef struct {
     float y;
     float dx; // direction vector components
     float dy;
+    int whoShot;
     SDL_Texture *texture;
     //SDL_Renderer *renderer;
 } Bullet;
 
-Bullet* createBullet(SDL_Renderer *renderer, float startX, float startY);
+Bullet* createBullet(SDL_Renderer *renderer, float startX, float startY, int whoShot);
 void destroyBullet(Bullet *bullet);
 void moveBullet(Bullet *bullet);
 void drawBullet(Bullet *bullet, SDL_Renderer *renderer);

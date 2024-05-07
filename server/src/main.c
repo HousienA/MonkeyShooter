@@ -282,7 +282,7 @@ void executeCommand(Game *pGame,ClientData cData){
     if(cData.command[4]==RIGHT&& cData.command[6]!=BLOCKED) turnRight(pGame->pPlayers[cData.playerNumber]);
     if(cData.command[5]==FIRE){
         printf("%d,cData.playerNumber in fire func\n", cData.playerNumber);
-        pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, cData.bulletStartX[cData.playerNumber], cData.bulletStartY[cData.playerNumber]);
+        pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, cData.bulletStartX[cData.playerNumber], cData.bulletStartY[cData.playerNumber], cData.playerNumber);
         if (pGame->bullets[pGame->num_bullets]) {
             pGame->bullets[pGame->num_bullets]->dx = cData.bulletDx[cData.playerNumber];
             pGame->bullets[pGame->num_bullets]->dy = cData.bulletDy[cData.playerNumber];

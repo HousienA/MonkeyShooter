@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-Bullet* createBullet(SDL_Renderer *renderer, float startX, float startY) {
+Bullet* createBullet(SDL_Renderer *renderer, float startX, float startY, int whoShot) {
     Bullet *bullet = malloc(sizeof(Bullet));
     if (!bullet) {
         printf("Failed to allocate memory for bullet.\n");
@@ -13,6 +13,7 @@ Bullet* createBullet(SDL_Renderer *renderer, float startX, float startY) {
     bullet->y = startY;
     bullet->dx = 0; 
     bullet->dy = 0;
+    bullet->whoShot = whoShot;
 
     return bullet;
 }

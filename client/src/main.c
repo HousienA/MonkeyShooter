@@ -77,7 +77,7 @@ int initializeNetwork(Game *pGame){
 		return 0;
 	}
 	// Resolve the server address
-    if (SDLNet_ResolveHost(&(pGame->serverAddress), "130.229.134.58", 2000) == -1) {
+    if (SDLNet_ResolveHost(&(pGame->serverAddress), "127.0.0.1", 2000) == -1) {
         printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
         SDLNet_UDP_Close(pGame->pSocket); // Close the socket
         SDLNet_Quit(); // Cleanup SDLNet
@@ -204,7 +204,7 @@ void renderCharacters(Game *pGame){
 void handleBulletCreation(Game *pGame, int x, int y, ClientData *cData) {
     float bulletStartX = pGame->pPlayers[pGame->playerNumber]->dest.x + pGame->pPlayers[pGame->playerNumber]->dest.w / 2;
     float bulletStartY = pGame->pPlayers[pGame->playerNumber]->dest.y + pGame->pPlayers[pGame->playerNumber]->dest.h / 2;
-    pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, bulletStartX, bulletStartY);
+    pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, bulletStartX, bulletStartY, pGame->playerNumber);
     if (pGame->bullets[pGame->num_bullets]) {
         // Calculate direction vector (normalized)
         float dx = x - bulletStartX;
@@ -408,12 +408,15 @@ void run(Game *pGame) {
             }
             for(int k=0; k<MAX_MONKEYS;k++){
                 for(int i = 0; i < pGame->num_bullets; i++){
-                if (checkCollisionBulletCharacter(pGame->bullets[i], pGame->pPlayers[k])){
+                SDL_Rect bulletRect = {pGame->bullets[i]->x, pGame->bullets[i]->y, 5, 5};
+                if(pGame->bullets[i]->whoShot != k){
+                if (SDL_HasIntersection(&bulletRect, &pGame->pPlayers[k]->dest)){
                     pGame->pPlayers[k]->health--;
                     //destroyBullet(pGame->bullets[i]);
                     //pGame->bullets[i] = NULL;
                     //pGame->num_bullets--;
                     printf("Bullet collision with player %d\n", k+1);
+                }
                 }
                 }
             
@@ -447,7 +450,7 @@ void run(Game *pGame) {
         }
 
         SDL_RenderPresent(pGame->pRenderer);
-        SDL_Delay(1);
+        //SDL_Delay(1000 / 60-15);
     }
 }
 
@@ -490,7 +493,7 @@ void updateWithServerData(Game *pGame){
         }
         if(sData.numberOfBullets > pGame->num_bullets && sData.whoShot != pGame->playerNumber && sData.bulletStartY < WINDOW_HEIGHT && sData.bulletStartX < WINDOW_WIDTH && (sData.bulletStartX==(sData.monkeys[sData.whoShot].x)+CHARACTER_WIDTH/2 && sData.monkeys[sData.whoShot].y+CHARACTER_HEIGHT/2)/*&& sData.fire == FIRE*/){
             //printf("Bullet received. Bullet y%f, x%f, dx%f, dy%f\n", sData.bulletStartY, sData.bulletStartX, sData.bulletDx, sData.bulletDy);
-            pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, sData.bulletStartX, sData.bulletStartY);
+            pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, sData.bulletStartX, sData.bulletStartY, sData.whoShot);
             pGame->bullets[pGame->num_bullets]->dx = sData.bulletDx;
             pGame->bullets[pGame->num_bullets]->dy = sData.bulletDy;
             pGame->num_bullets++;
