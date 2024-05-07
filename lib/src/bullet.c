@@ -48,7 +48,7 @@ bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter) {
     int characterRight = pCharacter->dest.x + CHARACTER_WIDTH;
     int characterTop = pCharacter->dest.y;
     int characterBottom = pCharacter->dest.y - CHARACTER_HEIGHT;
-    printf("Bullet: %d %d %d %d\n", bulletLeft, bulletRight, bulletTop, bulletBottom);
+    printf("Bullet: %f %f %f %f\n", bulletLeft, bulletRight, bulletTop, bulletBottom);
 
     // Check for collision
     if (bulletRight >= characterLeft && bulletLeft <= characterRight &&

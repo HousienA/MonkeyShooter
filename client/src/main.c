@@ -411,10 +411,10 @@ void run(Game *pGame) {
                 SDL_Rect bulletRect = {pGame->bullets[i]->x, pGame->bullets[i]->y, 5, 5};
                 if(pGame->bullets[i]->whoShot != k){
                 if (SDL_HasIntersection(&bulletRect, &pGame->pPlayers[k]->dest)){
-                    pGame->pPlayers[k]->health--;
-                    //destroyBullet(pGame->bullets[i]);
-                    //pGame->bullets[i] = NULL;
-                    //pGame->num_bullets--;
+                    decreaseHealth(pGame->pPlayers[k]);
+                    destroyBullet(pGame->bullets[i]);
+                    pGame->bullets[i] = NULL;
+                    pGame->num_bullets--;
                     printf("Bullet collision with player %d\n", k+1);
                 }
                 }

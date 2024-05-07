@@ -84,6 +84,10 @@ void destroyCharacter(Character *pCharacter)
 {
     SDL_DestroyTexture(pCharacter->tex);
     free(pCharacter);
+    pCharacter->dest.x=0;
+    pCharacter->dest.y=0;
+    pCharacter->dest.w=0;
+    pCharacter->dest.h=0;
 }
 
 void decreaseHealth(Character *pCharacter)
