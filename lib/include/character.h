@@ -8,6 +8,8 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include "netdata.h"
+#include "bullet.h"
 
 
 typedef struct {
@@ -15,6 +17,7 @@ typedef struct {
     SDL_Rect source;
     SDL_Renderer *renderer;
     SDL_Texture *tex;
+    Bullet *bullet[MAX_BULLETS];
     int health;
     int currentFrame;
     Uint32 animationTimer;
@@ -31,5 +34,10 @@ void turnDown(Character *pCharacter);
 void updateCharacterAnimation(Character *pCharacter, Uint32 deltaTime);
 void renderCharacter(Character *pCharacter, SDL_Renderer *renderer);
 void destroyCharacter(Character *pCharacter);
+void characterSendData(Character *pCharacter, MonkeyData *pMonkeyData);
+void updateCharacterFromServer(Character *pCharacter, MonkeyData *pMonkeyData);
+void healthBar(Character *pCharacter, SDL_Renderer *renderer);
+bool checkCollisionCharacterBullet(Character *pCharacter, Bullet *bullet);
+void bulletCreate(Bullet *bullet, Character *pCharacter);
 
 #endif

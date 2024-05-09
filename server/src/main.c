@@ -158,16 +158,9 @@ void acceptClients(Game *pGame, ClientData cData){
 void renderCharacters(Game *pGame){
     for(int i = 0; i < pGame->num_players; i++){
         Character *character = pGame->pPlayers[i];
-        SDL_Rect characterDest = {
-            pGame->pPlayers[i]->dest.x ,//- pGame->viewport.x,
-            pGame->pPlayers[i]->dest.y ,//- pGame->viewport.y,
-            pGame->pPlayers[i]->dest.w,
-            pGame->pPlayers[i]->dest.h
-        };
-        SDL_RenderCopyEx(pGame->pRenderer, character->tex, &character->source, &characterDest, 0, NULL, SDL_FLIP_NONE);
+        renderCharacter(pGame->pPlayers[i], pGame->pRenderer);
     }
 }
-
 
 void run(Game *pGame){
     int close_requested = 0;
@@ -176,7 +169,6 @@ void run(Game *pGame){
     ClientData cData = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     while(!close_requested){
        
-
         switch (pGame->state)
         {
             case ONGOING:
@@ -207,32 +199,7 @@ void run(Game *pGame){
                         break; // Break out of the while loop when the window is closed
                     }
                 }
-            /*
-                for(int i=0;i<MAX_PLAYERS;i++)
-                    pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
-                    
                 
-                for(int i=0;i<MAX_PLAYERS;i++)
-                    
-
-                //go through and check if all players are dead
-                int allPlayersDead = 1;
-                for(int i = 0; i < MAX_PLAYERS; i++) {
-                    if(pGame->pPlayers[i]->health > 0) {
-                        allPlayersDead = 0;
-                        break;
-                    }
-                }
-
-                //if all players dead, got to menu and reset health
-                if(allPlayersDead) {
-                    pGame->state = MENU;
-                    pGame->num_players = 0;
-                    for(int i = 0; i < MAX_PLAYERS; i++) {
-                        pGame->pPlayers[i]->health = MAX_HEALTH; // Reset player health
-                    }
-                }
-                */
                 SDL_RenderPresent(pGame->pRenderer);
                 
                 break;
@@ -244,7 +211,7 @@ void run(Game *pGame){
                 acceptClients(pGame, cData);
                 drawText(pGame->pWaitingText);
                 SDL_RenderPresent(pGame->pRenderer);
-                sendGameData(pGame, cData);
+                //sendGameData(pGame, cData);
                 
                 //printf("Waiting for players\n");
                 if(SDL_PollEvent(&event) && event.type==SDL_QUIT) {
@@ -291,13 +258,6 @@ void executeCommand(Game *pGame,ClientData cData){
             return;
         }
     }
-        
-
-
-     if (cData.playerNumber < 0 || cData.playerNumber >= MAX_PLAYERS) {
-        printf("Error: Invalid player number %d\n", cData.playerNumber);
-        return;
-    }
 
     // Check if coordinates are not negative
     if (cData.monkey.x < 0 || cData.monkey.y < 0) {
@@ -308,7 +268,7 @@ void executeCommand(Game *pGame,ClientData cData){
     //printf("Player %d position: x=%f, y=%f\n", cData.playerNumber, cData.monkey.x, cData.monkey.y);
 
     //Update player data
-    pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
+    //pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
     
 }
 
@@ -317,12 +277,8 @@ void sendGameData(Game *pGame,ClientData cData){
     sData.gState = pGame->state;
     for(int i=0;i<MAX_MONKEYS;i++){
         sData.slotsTaken[i] = pGame->slotsTaken[i];
-        sData.monkeys[i].x = pGame->pPlayers[i]->dest.x;
-        sData.monkeys[i].y = pGame->pPlayers[i]->dest.y;
-        sData.monkeys[i].sx = pGame->pPlayers[i]->source.x;
-        sData.monkeys[i].sy = pGame->pPlayers[i]->source.y;
+        characterSendData(pGame->pPlayers[i], &(sData.monkeys[i]));
         sData.whoShot = cData.playerNumber;
-        sData.monkeys[i].health = pGame->pPlayers[i]->health;
         
     }
 
@@ -335,7 +291,7 @@ void sendGameData(Game *pGame,ClientData cData){
     sData.bulletStartY = pGame->bullets[pGame->num_bullets-1]->y;
     }
     sData.numberOfPlayers = pGame->num_players;
-    printf("numberofbullets%d\n", pGame->num_bullets);
+    //printf("numberofbullets%d\n", pGame->num_bullets);
     
     memcpy(pGame->pPacket->data, &(sData), sizeof(ServerData));
     pGame->pPacket->len = sizeof(ServerData);

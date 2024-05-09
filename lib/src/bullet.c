@@ -57,6 +57,4 @@ bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter) {
         return true;
     }
     return false;
-
-    
 }

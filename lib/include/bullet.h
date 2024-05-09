@@ -25,6 +25,6 @@ Bullet* createBullet(SDL_Renderer *renderer, float startX, float startY, int who
 void destroyBullet(Bullet *bullet);
 void moveBullet(Bullet *bullet);
 void drawBullet(Bullet *bullet, SDL_Renderer *renderer);
-bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter);
+//bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter);
 
 #endif

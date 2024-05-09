@@ -3,10 +3,13 @@
 #include "../include/game.h"
 #include "../include/world.h"
 #include "../include/bullet.h"
+#include "../include/netdata.h"
 
 #define SPRITE_WIDTH 128
 #define SPRITE_HEIGHT 128
 #define ANIMATION_FRAMES 3
+
+
 
 Character *createCharacter(SDL_Renderer *renderer)
 {
@@ -76,7 +79,8 @@ void updateCharacterAnimation(Character *pCharacter, Uint32 deltaTime)
 
 void renderCharacter(Character *pCharacter, SDL_Renderer *renderer)
 {
-    // Render current sprite frame
+    if(!pCharacter->health) return;
+    SDL_Rect dest = {pCharacter->dest.x, pCharacter->dest.y, pCharacter->dest.w, pCharacter->dest.h};
     SDL_RenderCopy(renderer, pCharacter->tex, &pCharacter->source, &pCharacter->dest);
 }
 
@@ -132,4 +136,50 @@ void turnDown(Character *pCharacter)
     pCharacter->dest.y += MOVE_SPEED;
     pCharacter->direction = 0;
     updateCharacterAnimation(pCharacter, 100);
+}
+
+void characterSendData(Character *pCharacter, MonkeyData *pMonkeyData)
+{
+    pMonkeyData->x = pCharacter->dest.x;
+    pMonkeyData->y = pCharacter->dest.y;
+    pMonkeyData->sx = pCharacter->source.x;
+    pMonkeyData->sy = pCharacter->source.y;
+    pMonkeyData->health = pCharacter->health;
+    //SendBulletData(pCharacter->bullet, &pMonkeyData->bData);
+}
+
+void updateCharacterFromServer(Character *pCharacter, MonkeyData *monkeys)
+{
+    pCharacter->dest.x = monkeys->x;
+    pCharacter->dest.y = monkeys->y;
+    pCharacter->source.x = monkeys->sx;
+    pCharacter->source.y = monkeys->sy;
+    pCharacter->health = monkeys->health;
+    //updateBulletFromServer(pCharacter->bullet, &pMonkeyData->bData);
+}
+
+void healthBar(Character *pCharacter, SDL_Renderer *renderer)
+{
+    SDL_Rect healthBar = {20, 20, 100, 20}; // Health bar position and size
+    SDL_Rect remainingHealth = {20, 20, pCharacter->health * 25, 20}; // Health bar remaining size
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red color
+    SDL_RenderFillRect(renderer, &healthBar); // Draw the background of health bar
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Green color
+    SDL_RenderFillRect(renderer, &remainingHealth); // Draw the remaining healt
+}
+
+bool checkCollisionCharacterBullet(Character *pCharacter, Bullet *bullet) {
+    SDL_Rect characterRect = {pCharacter->dest.x, pCharacter->dest.y, CHARACTER_WIDTH, CHARACTER_HEIGHT};
+    SDL_Rect bulletRect = {bullet->x, bullet->y, BULLET_WIDTH, BULLET_HEIGHT};
+
+    return SDL_HasIntersection(&characterRect, &bulletRect);
+}
+
+void bulletStart(Bullet *bullet, Character *pCharacter)
+{
+    bullet->x = pCharacter->dest.x;
+    bullet->y = pCharacter->dest.y;
+    bullet->dx = 0;
+    bullet->dy = 0;
+    bullet->whoShot = 0;
 }

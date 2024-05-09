@@ -18,11 +18,9 @@ struct monkeyData{
    int health;
    
 };
-
-//client data fails to track position of monkeys, not sending to server correctly
 typedef struct monkeyData MonkeyData;
 struct clientData{
-   ClientCommand command[7];//enum READY sparas på plats 0, UP på plats 1 osv
+   ClientCommand command[7];
    MonkeyData monkey;
    int playerNumber, slotsTaken[4];
    int numberOfBullets;
