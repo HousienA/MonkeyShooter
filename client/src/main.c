@@ -195,8 +195,8 @@ void renderCharacters(Game *pGame){
 
 //function to handle the creation of bullets
 void handleBulletCreation(Game *pGame, int x, int y, ClientData *cData) {
-    float bulletStartX = pGame->pPlayers[pGame->playerNumber]->dest.x + pGame->pPlayers[pGame->playerNumber]->dest.w / 2;
-    float bulletStartY = pGame->pPlayers[pGame->playerNumber]->dest.y + pGame->pPlayers[pGame->playerNumber]->dest.h / 2;
+    float bulletStartX, bulletStartY;
+    setBulletStartPosition(pGame->pPlayers[pGame->playerNumber], &bulletStartX, &bulletStartY);
     pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, bulletStartX, bulletStartY, pGame->playerNumber);
     if (pGame->bullets[pGame->num_bullets]) {
         // Calculate direction vector (normalized)
@@ -390,24 +390,23 @@ void run(Game *pGame) {
             }
             for(int k=0; k<MAX_MONKEYS;k++){
                 for(int i = 0; i < pGame->num_bullets; i++){
-                SDL_Rect bulletRect = {pGame->bullets[i]->x, pGame->bullets[i]->y, 5, 5};
+                //SDL_Rect bulletRect = {pGame->bullets[i]->x, pGame->bullets[i]->y, 5, 5};    //not needed
                 if(pGame->bullets[i]->whoShot != k){
                 if (checkCollisionCharacterBullet(pGame->pPlayers[k], pGame->bullets[i])){
+                    //printf("Character health before collision: %d\n", pGame->pPlayers[k]->health);
                     decreaseHealth(pGame->pPlayers[k]);
+                    //printf("Character health after collision: %d\n", pGame->pPlayers[k]->health);
                     destroyBullet(pGame->bullets[i]);
                     pGame->bullets[i] = NULL;
                     pGame->num_bullets--;
                     printf("Bullet collision with player %d\n", k+1);
+                    
                 }
                 }
                 }
             
             }
-          
-          //  printf("%d",pGame->pPlayers[1]->dest.x);
-      //      printf("%d",pGame->pPlayers[0]->dest.x);
-    //printf("Player 0 health: %d\n", pGame->pPlayers[0]->health);
-    //printf("Player 1 health: %d\n", pGame->pPlayers[1]->health);
+            
             renderHealthBar(pGame->pPlayers, pGame->pRenderer, pGame->playerNumber);
                // Check if character is dead
             if (!isCharacterAlive(pGame->pPlayers[pGame->playerNumber])) {
@@ -434,10 +433,10 @@ void sendData(Game *pGame, ClientData *cData){
 
     // Check if playerNumber is within the valid range 
     if (cData->playerNumber >= 0 && cData->playerNumber < pGame->num_players) {
-       /* cData->monkey.x = pGame->pPlayers[cData->playerNumber]->dest.x;
-        cData->monkey.y = pGame->pPlayers[cData->playerNumber]->dest.y;
+    /*    cData->monkey.x = pGame->pPlayers[cData->playerNumber]->dest.x;
+        cData->monkey.y = pGame->pPlayers[cData->playerNumber]->dest.y;         //not needed
         cData->monkey.health = pGame->pPlayers[cData->playerNumber]->health;
-        */
+       */ 
         
         memcpy(pGame->pPacket->data, cData, sizeof(ClientData));
         SDLNet_UDP_Send(pGame->pSocket, -1, pGame->pPacket);
@@ -455,13 +454,13 @@ void updateWithServerData(Game *pGame){
                 updateCharacterFromServer(pGame->pPlayers[i],&(sData.monkeys[i]));
             }
         }
-        if(sData.numberOfBullets > pGame->num_bullets && sData.whoShot != pGame->playerNumber && sData.bulletStartY < WINDOW_HEIGHT && sData.bulletStartX < WINDOW_WIDTH && (sData.bulletStartX==(sData.monkeys[sData.whoShot].x)+CHARACTER_WIDTH/2 && sData.monkeys[sData.whoShot].y+CHARACTER_HEIGHT/2)/*&& sData.fire == FIRE*/){
-            //printf("Bullet received. Bullet y%f, x%f, dx%f, dy%f\n", sData.bulletStartY, sData.bulletStartX, sData.bulletDx, sData.bulletDy);
+        if(sData.numberOfBullets > pGame->num_bullets && sData.whoShot != pGame->playerNumber && sData.fire == FIRE){
+            //printf("Bullet received from server\n");
             pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, sData.bulletStartX, sData.bulletStartY, sData.whoShot);
             pGame->bullets[pGame->num_bullets]->dx = sData.bulletDx;
             pGame->bullets[pGame->num_bullets]->dy = sData.bulletDy;
             pGame->num_bullets++;
-            //printf("Bullet created%d\n", pGame->num_bullets);
+            printf("Bullet created%d\n", pGame->num_bullets);
         }
     }
 }

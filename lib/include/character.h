@@ -39,5 +39,6 @@ void updateCharacterFromServer(Character *pCharacter, MonkeyData *pMonkeyData);
 void healthBar(Character *pCharacter, SDL_Renderer *renderer);
 bool checkCollisionCharacterBullet(Character *pCharacter, Bullet *bullet);
 void bulletCreate(Bullet *bullet, Character *pCharacter);
-
+void updateHealth(Character *pCharacter, MonkeyData *monkey);
+void setBulletStartPosition(Character *pCharacter, float *startX, float *startY);
 #endif

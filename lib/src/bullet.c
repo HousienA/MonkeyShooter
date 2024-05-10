@@ -35,6 +35,21 @@ void drawBullet(Bullet *bullet, SDL_Renderer *renderer) {
     SDL_RenderFillRect(renderer, &rect); // Draw a bullet
 }
 
+float xBullet(Bullet *bullet){
+    return bullet->x;
+}
+
+float DxBullet(Bullet *bullet){
+    return bullet->dx;
+}
+
+float yBullet(Bullet *bullet){
+    return bullet->y;
+}
+
+float DyBullet(Bullet *bullet){
+    return bullet->dy;
+}
 
 bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter) {
     // Calculate the bounding box for the bullet

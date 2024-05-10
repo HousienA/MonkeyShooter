@@ -88,10 +88,6 @@ void destroyCharacter(Character *pCharacter)
 {
     SDL_DestroyTexture(pCharacter->tex);
     free(pCharacter);
-    pCharacter->dest.x=0;
-    pCharacter->dest.y=0;
-    pCharacter->dest.w=0;
-    pCharacter->dest.h=0;
 }
 
 void decreaseHealth(Character *pCharacter)
@@ -175,11 +171,8 @@ bool checkCollisionCharacterBullet(Character *pCharacter, Bullet *bullet) {
     return SDL_HasIntersection(&characterRect, &bulletRect);
 }
 
-void bulletStart(Bullet *bullet, Character *pCharacter)
-{
-    bullet->x = pCharacter->dest.x;
-    bullet->y = pCharacter->dest.y;
-    bullet->dx = 0;
-    bullet->dy = 0;
-    bullet->whoShot = 0;
+void setBulletStartPosition(Character *pCharacter, float *startX, float *startY) {
+    *startX = pCharacter->dest.x + pCharacter->dest.w / 2;
+    *startY = pCharacter->dest.y + pCharacter->dest.h / 2;
 }
+

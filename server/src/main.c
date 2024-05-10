@@ -260,10 +260,7 @@ void executeCommand(Game *pGame,ClientData cData){
     }
 
     // Check if coordinates are not negative
-    if (cData.monkey.x < 0 || cData.monkey.y < 0) {
-        printf("Error: Invalid coordinates for player %d: x=%d, y=%d\n", cData.playerNumber, cData.monkey.x, cData.monkey.y);
-        return;
-    }
+    
     //track player's position (im guessing cData is not tracking the player's position, so we need to update it here)
     //printf("Player %d position: x=%f, y=%f\n", cData.playerNumber, cData.monkey.x, cData.monkey.y);
 
@@ -285,13 +282,13 @@ void sendGameData(Game *pGame,ClientData cData){
     //if(cData.command[5]==FIRE) sData.fire = READY;
     
     if(pGame->num_bullets>0){
-    sData.bulletDx = pGame->bullets[pGame->num_bullets-1]->dx;
-    sData.bulletDy = pGame->bullets[pGame->num_bullets-1]->dy;
-    sData.bulletStartX = pGame->bullets[pGame->num_bullets-1]->x;
-    sData.bulletStartY = pGame->bullets[pGame->num_bullets-1]->y;
+    sData.bulletDx = DxBullet(pGame->bullets[pGame->num_bullets-1]);
+    sData.bulletDy = DyBullet(pGame->bullets[pGame->num_bullets-1]);
+    sData.bulletStartX = xBullet(pGame->bullets[pGame->num_bullets-1]);
+    sData.bulletStartY = yBullet(pGame->bullets[pGame->num_bullets-1]);
     }
     sData.numberOfPlayers = pGame->num_players;
-    //printf("numberofbullets%d\n", pGame->num_bullets);
+    
     
     memcpy(pGame->pPacket->data, &(sData), sizeof(ServerData));
     pGame->pPacket->len = sizeof(ServerData);
