@@ -15,6 +15,7 @@ struct character{
     SDL_Renderer *renderer;
     SDL_Texture *tex;
     Bullet *bullet[MAX_BULLETS];
+    Wall *walls[23];
     int health;
     int currentFrame;
     Uint32 animationTimer;
@@ -187,3 +188,20 @@ void setBulletStartPosition(Character *pCharacter, float *startX, float *startY)
     *startY = pCharacter->dest.y + pCharacter->dest.h / 2;
 }
 
+bool checkCollision(Character *character, Wall *walls, int num_walls) {
+    //check that its away from the borders
+    if (character->dest.x < PLAYABLE_AREA_X_MIN || character->dest.x + character->dest.w > PLAYABLE_AREA_X_MAX ||
+        character->dest.y < PLAYABLE_AREA_Y_MIN || character->dest.y + character->dest.h / 2 > PLAYABLE_AREA_Y_MAX) {
+        return TRUE;   // true if collision with boundary is detected        
+    }
+    
+    int margin = 10; //few pixels margin to slip through sides of monkey
+    for (int i = 0; i < num_walls; ++i) {
+        if (character->dest.x + character->dest.w - margin > walls[i].x_min && character->dest.x + margin < walls[i].x_max &&
+            character->dest.y + character->dest.h > walls[i].y_min && character->dest.y + character->dest.h / 2 < walls[i].y_max) {
+            return TRUE;    // true if collision with wall...
+        }
+    }
+
+    return FALSE;
+}

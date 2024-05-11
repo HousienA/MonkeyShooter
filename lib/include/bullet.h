@@ -14,11 +14,10 @@
 typedef struct {
     float x;
     float y;
-    float dx; // direction vector components
+    float dx; 
     float dy;
     int whoShot;
     SDL_Texture *texture;
-    //SDL_Renderer *renderer;
 } Bullet;
 
 Bullet* createBullet(SDL_Renderer *renderer, float startX, float startY, int whoShot);
