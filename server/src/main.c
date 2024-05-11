@@ -259,14 +259,6 @@ void executeCommand(Game *pGame,ClientData cData){
             return;
         }
     }
-
-    // Check if coordinates are not negative
-    
-    //track player's position (im guessing cData is not tracking the player's position, so we need to update it here)
-    //printf("Player %d position: x=%f, y=%f\n", cData.playerNumber, cData.monkey.x, cData.monkey.y);
-
-    //Update player data
-    //pGame->pPlayers[cData.playerNumber]->health = cData.monkey.health;
     
 }
 

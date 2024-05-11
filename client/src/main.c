@@ -35,7 +35,7 @@ struct game{
     MenuState menuState;
     Bullet *bullets[200];
     int num_bullets, num_players, playerNumber, slotsTaken[MAX_PLAYERS]; // track the number of players in the game
-
+    bool canShoot;
 
     UDPsocket pSocket;
     IPaddress serverAddress;
@@ -165,7 +165,7 @@ int intializeWindow(Game *pGame) {
     initializeCharacters(pGame);
 
     pGame->state = MENU;
-
+    pGame->canShoot = FALSE;
     
     return TRUE;
 }
@@ -261,6 +261,7 @@ void handle_input(Game *pGame) {
 		            pGame->pPacket->len = sizeof(ClientData);
                     SDLNet_UDP_Send(pGame->pSocket, -1,pGame->pPacket);
                     pGame->state = ONGOING;
+                    pGame->canShoot = FALSE;
             }
             else if(mouseX>270 && mouseX<550 && mouseY>400 && mouseY<443 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
             else if(mouseX>288 && mouseX<533 && mouseY>497 && mouseY<541 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = CONFIGURE;
@@ -278,6 +279,9 @@ void handle_input(Game *pGame) {
 
         case ONGOING:
             printf("numberOfbullets: %d\n", pGame->num_bullets);
+            if(!pGame->canShoot) {
+                pGame->canShoot = TRUE;
+            }
             memset(&cData, 0, sizeof(cData));
             if (state[SDL_SCANCODE_A]) {
                 turnLeft(pGame->pPlayers[ pGame->playerNumber]);
@@ -311,7 +315,7 @@ void handle_input(Game *pGame) {
                     cData.command[1] = UP;
                 }
             }
-            if (SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK && !mouseClick && currentTime - lastShootTime >= 1000) {
+            if (SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK && !mouseClick && currentTime - lastShootTime >= 500) {
                 // Shoot a bullet with location in respect to viewport 
                 handleBulletCreation(pGame, x, y, &cData);
                 cData.command[5] = FIRE;              
