@@ -164,6 +164,7 @@ void renderCharacters(Game *pGame){
 
 void run(Game *pGame){
     int close_requested = 0;
+    for(int i=0;i<MAX_PLAYERS;i++) pGame->slotsTaken[i] = 0;
     pGame->num_bullets = 0; 
     SDL_Event event;
     ClientData cData = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -183,7 +184,7 @@ void run(Game *pGame){
                     executeCommand(pGame,cData);
                     sendGameData(pGame, cData);
                     memset(&cData, 0, sizeof(cData));
-                    printf("numberOFBullets: %d\n", pGame->num_bullets);
+                    
                     
                 }
                 for (int i = 0; i < pGame->num_bullets; i++){
@@ -211,7 +212,7 @@ void run(Game *pGame){
                 acceptClients(pGame, cData);
                 drawText(pGame->pWaitingText);
                 SDL_RenderPresent(pGame->pRenderer);
-                //sendGameData(pGame, cData);
+                sendGameData(pGame, cData);
                 
                 //printf("Waiting for players\n");
                 if(SDL_PollEvent(&event) && event.type==SDL_QUIT) {
@@ -220,6 +221,11 @@ void run(Game *pGame){
                 }
                 if(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
                     add(pGame->pPacket->address,pGame->serverAddress,&(pGame->num_players));
+                    
+                    printf("numberofplayers%d\n",pGame->num_players);
+                    sendGameData(pGame, cData);
+                    pGame->slotsTaken[pGame->num_players-1] = 1;
+                    
                     if(pGame->num_players==MAX_MONKEYS){
                         pGame->state = ONGOING;
                         destroyText(pGame->pWaitingText);
@@ -279,12 +285,12 @@ void sendGameData(Game *pGame,ClientData cData){
     sData.bulletDy = DyBullet(pGame->bullets[pGame->num_bullets-1]);
     sData.bulletStartX = xBullet(pGame->bullets[pGame->num_bullets-1]);
     sData.bulletStartY = yBullet(pGame->bullets[pGame->num_bullets-1]);
-    sData.numberOfBullets = pGame->num_bullets;
+    
     sData.fire = pGame->fire;
     pGame->fire = 0;
     }
     sData.numberOfPlayers = pGame->num_players;
-    
+    sData.numberOfBullets = pGame->num_bullets;
     
     memcpy(pGame->pPacket->data, &(sData), sizeof(ServerData));
     pGame->pPacket->len = sizeof(ServerData);

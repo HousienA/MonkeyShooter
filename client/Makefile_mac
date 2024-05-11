@@ -6,7 +6,7 @@ COMMONSRCDIR = ../lib/src
 INCLUDE = -I/opt/homebrew/include/
 LIBS = /opt/homebrew/lib
 CFLAGS = -g -I$(INCLUDE) -c
-LDFLAGS = -L/opt/homebrew/lib/ -lSDL2main -lSDL2 -lSDL2_image -lm -lSDL2_net
+LDFLAGS = -L/opt/homebrew/lib/ -lSDL2main -lSDL2 -lSDL2_image -lm -lSDL2_net -lSDL2_ttf 
 
 characterClient: main.o character.o world.o bullet.o
 	gcc -fsanitize=address -o characterClient main.o character.o world.o bullet.o $(LDFLAGS)
