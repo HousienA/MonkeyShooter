@@ -35,7 +35,7 @@ struct game{
     GameState state;
     MenuState menuState;
     Bullet *bullets[1000];
-    int num_bullets, num_players, slotsTaken[4]; // track the number of players in the game
+    int num_bullets, num_players, slotsTaken[4], fire; // track the number of players in the game
     TTF_Font *font;
     Text *pWaitingText, *pJoinedText;
     ServerData sData;
@@ -183,7 +183,7 @@ void run(Game *pGame){
                     executeCommand(pGame,cData);
                     sendGameData(pGame, cData);
                     memset(&cData, 0, sizeof(cData));
-                    
+                    printf("numberOFBullets: %d\n", pGame->num_bullets);
                     
                 }
                 for (int i = 0; i < pGame->num_bullets; i++){
@@ -249,12 +249,13 @@ void executeCommand(Game *pGame,ClientData cData){
     if(cData.command[4]==RIGHT&& cData.command[6]!=BLOCKED) turnRight(pGame->pPlayers[cData.playerNumber]);
     if(cData.command[5]==FIRE){
         printf("%d,cData.playerNumber in fire func\n", cData.playerNumber);
-        pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, cData.bulletStartX[cData.playerNumber], cData.bulletStartY[cData.playerNumber], cData.playerNumber);
+        pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, cData.bulletStartX, cData.bulletStartY, cData.playerNumber);
         if (pGame->bullets[pGame->num_bullets]) {
-            pGame->bullets[pGame->num_bullets]->dx = cData.bulletDx[cData.playerNumber];
-            pGame->bullets[pGame->num_bullets]->dy = cData.bulletDy[cData.playerNumber];
+            pGame->bullets[pGame->num_bullets]->dx = cData.bulletDx;
+            pGame->bullets[pGame->num_bullets]->dy = cData.bulletDy;
             pGame->num_bullets++;
-            printf("bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX[cData.playerNumber], cData.bulletStartY[cData.playerNumber], cData.bulletDx[cData.playerNumber], cData.bulletDy[cData.playerNumber]);
+            pGame->fire = 1;
+            //printf("bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX, cData.bulletStartY, cData.bulletDx, cData.bulletDy);
             return;
         }
     }
@@ -286,6 +287,9 @@ void sendGameData(Game *pGame,ClientData cData){
     sData.bulletDy = DyBullet(pGame->bullets[pGame->num_bullets-1]);
     sData.bulletStartX = xBullet(pGame->bullets[pGame->num_bullets-1]);
     sData.bulletStartY = yBullet(pGame->bullets[pGame->num_bullets-1]);
+    sData.numberOfBullets = pGame->num_bullets;
+    sData.fire = pGame->fire;
+    pGame->fire = 0;
     }
     sData.numberOfPlayers = pGame->num_players;
     

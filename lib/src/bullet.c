@@ -1,5 +1,6 @@
 #include "../include/character.h"
 #include "../include/bullet.h"
+#include "../include/character.h"
 #include <stdlib.h>
 #include <math.h>
 
@@ -51,7 +52,7 @@ float DyBullet(Bullet *bullet){
     return bullet->dy;
 }
 
-bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter) {
+/*bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter) {
     // Calculate the bounding box for the bullet
     float bulletLeft = bullet->x;
     float bulletRight = bullet->x + 5; // Assuming bullet width is 5
@@ -72,4 +73,4 @@ bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter) {
         return true;
     }
     return false;
-}
+}*/

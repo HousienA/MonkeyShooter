@@ -24,7 +24,7 @@ struct clientData{
    MonkeyData monkey;
    int playerNumber, slotsTaken[4];
    int numberOfBullets;
-   float bulletStartX[MAX_MONKEYS], bulletStartY[MAX_MONKEYS], bulletDx[MAX_MONKEYS], bulletDy[MAX_MONKEYS];
+   float bulletStartX, bulletStartY, bulletDx, bulletDy;
 };
 typedef struct clientData ClientData;
 
@@ -36,7 +36,7 @@ typedef struct bulletData BulletData;
 
 struct serverData{
    MonkeyData monkeys[MAX_MONKEYS];
-   ClientCommand fire;
+   int fire;
    int slotsTaken[4], numberOfBullets, numberOfPlayers, whoShot;
    GameState gState;
    float bulletStartX, bulletStartY, bulletDx, bulletDy;

@@ -9,6 +9,17 @@
 #define SPRITE_HEIGHT 128
 #define ANIMATION_FRAMES 3
 
+struct character{
+    SDL_Rect dest;
+    SDL_Rect source;
+    SDL_Renderer *renderer;
+    SDL_Texture *tex;
+    Bullet *bullet[MAX_BULLETS];
+    int health;
+    int currentFrame;
+    Uint32 animationTimer;
+    int direction; // 0 - down, 1 - left, 2 - right, 3 - up
+};
 
 
 Character *createCharacter(SDL_Renderer *renderer)

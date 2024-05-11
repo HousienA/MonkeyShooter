@@ -205,10 +205,10 @@ void handleBulletCreation(Game *pGame, int x, int y, ClientData *cData) {
         float mag = sqrtf(dx * dx + dy * dy);
         pGame->bullets[pGame->num_bullets]->dx = dx / mag * BULLET_SPEED;
         pGame->bullets[pGame->num_bullets]->dy = dy / mag * BULLET_SPEED;
-        cData->bulletStartX[pGame->playerNumber] = bulletStartX;
-        cData->bulletStartY[pGame->playerNumber] = bulletStartY;
-        cData->bulletDx[pGame->playerNumber] = pGame->bullets[pGame->num_bullets]->dx;
-        cData->bulletDy[pGame->playerNumber] = pGame->bullets[pGame->num_bullets]->dy;
+        cData->bulletStartX = bulletStartX;
+        cData->bulletStartY = bulletStartY;
+        cData->bulletDx = pGame->bullets[pGame->num_bullets]->dx;
+        cData->bulletDy = pGame->bullets[pGame->num_bullets]->dy;
         pGame->num_bullets++;
     }
 }
@@ -277,6 +277,7 @@ void handle_input(Game *pGame) {
             break;
 
         case ONGOING:
+            printf("numberOfbullets: %d\n", pGame->num_bullets);
             memset(&cData, 0, sizeof(cData));
             if (state[SDL_SCANCODE_A]) {
                 turnLeft(pGame->pPlayers[ pGame->playerNumber]);
@@ -330,8 +331,8 @@ void handle_input(Game *pGame) {
 
             }
             if(!fire){
-                cData.bulletStartX[pGame->playerNumber]=-1;
-                cData.bulletStartY[pGame->playerNumber]=-1;
+                cData.bulletStartX=-1;
+                cData.bulletStartY=-1;
             }
             if (commandExists) {
                 memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
@@ -390,19 +391,20 @@ void run(Game *pGame) {
             }
             for(int k=0; k<MAX_MONKEYS;k++){
                 for(int i = 0; i < pGame->num_bullets; i++){
-                //SDL_Rect bulletRect = {pGame->bullets[i]->x, pGame->bullets[i]->y, 5, 5};    //not needed
-                if(pGame->bullets[i]->whoShot != k){
-                if (checkCollisionCharacterBullet(pGame->pPlayers[k], pGame->bullets[i])){
-                    //printf("Character health before collision: %d\n", pGame->pPlayers[k]->health);
-                    decreaseHealth(pGame->pPlayers[k]);
-                    //printf("Character health after collision: %d\n", pGame->pPlayers[k]->health);
-                    destroyBullet(pGame->bullets[i]);
-                    pGame->bullets[i] = NULL;
-                    pGame->num_bullets--;
-                    printf("Bullet collision with player %d\n", k+1);
-                    
-                }
-                }
+                    if(pGame->bullets[i]->whoShot != k){
+                        if (checkCollisionCharacterBullet(pGame->pPlayers[k], pGame->bullets[i])){
+                        decreaseHealth(pGame->pPlayers[k]);
+                        destroyBullet(pGame->bullets[i]);
+                        // Shift all bullets after this one back by one position
+                        for (int j = i; j < pGame->num_bullets - 1; j++) {
+                            pGame->bullets[j] = pGame->bullets[j + 1];
+                        }
+                        pGame->num_bullets--;
+                        printf("Bullet collision with player %d\n", k+1);
+                        // Decrement i so we don't skip the next bullet
+                        i--;
+                        }
+                    }
                 }
             
             }
@@ -454,7 +456,7 @@ void updateWithServerData(Game *pGame){
                 updateCharacterFromServer(pGame->pPlayers[i],&(sData.monkeys[i]));
             }
         }
-        if(sData.numberOfBullets > pGame->num_bullets && sData.whoShot != pGame->playerNumber && sData.fire == FIRE){
+        if(sData.numberOfBullets > pGame->num_bullets && sData.whoShot != pGame->playerNumber && sData.fire == 1){
             //printf("Bullet received from server\n");
             pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, sData.bulletStartX, sData.bulletStartY, sData.whoShot);
             pGame->bullets[pGame->num_bullets]->dx = sData.bulletDx;
