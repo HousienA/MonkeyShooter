@@ -13,8 +13,8 @@ Wall walls[23] = {
     {578, 620, 247, 292}, {724, 762, 225, 278}, {736, 780, 130, 187}, {472, 526, 176, 206}       //trees
      
 };
-
-//check collision with boundaries and walls
+/*
+//check collision with boundaries and walls 
 bool checkCollision(Character *character, Wall *walls, int num_walls) {
     //check that its away from the borders
     if (character->dest.x < PLAYABLE_AREA_X_MIN || character->dest.x + character->dest.w > PLAYABLE_AREA_X_MAX ||
@@ -38,3 +38,4 @@ bool checkCollision(Character *character, Wall *walls, int num_walls) {
     //no collision
     return FALSE;
 }
+*/

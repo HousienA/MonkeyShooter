@@ -23,8 +23,5 @@ typedef struct {
 //make struct accesible to other files. (can be modified as a pointed for easier reach later)
 extern Wall walls[23];
 
-//function to check collision with character
-bool checkCollision(Character *character, Wall *walls, int num_walls);
-//bool checkCollisionWithBullet(Character *character, Bullet *bullet);
 
 #endif // WORLD_H

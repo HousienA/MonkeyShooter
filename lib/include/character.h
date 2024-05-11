@@ -10,7 +10,7 @@
 #include <SDL2/SDL_image.h>
 #include "netdata.h"
 #include "bullet.h"
-
+#include "world.h"
 
 typedef struct character Character;
 
@@ -31,4 +31,5 @@ bool checkCollisionCharacterBullet(Character *pCharacter, Bullet *bullet);
 void bulletCreate(Bullet *bullet, Character *pCharacter);
 void updateHealth(Character *pCharacter, MonkeyData *monkey);
 void setBulletStartPosition(Character *pCharacter, float *startX, float *startY);
+bool checkCollision(Character *character, Wall *walls, int num_walls);
 #endif
