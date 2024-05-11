@@ -9,6 +9,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_net.h>
+#include <SDL2/SDL_timer.h>
 
 
 #define NR_OF_MENUTEXTURES 2
@@ -34,7 +35,7 @@ struct game{
     GameState state;
     MenuState menuState;
     Bullet *bullets[200];
-    int num_bullets, num_players, playerNumber, slotsTaken[MAX_PLAYERS]; // track the number of players in the game
+    int num_bullets, num_players, playerNumber, slotsTaken[MAX_PLAYERS], joining; // track the number of players in the game
 
 
     UDPsocket pSocket;
@@ -214,7 +215,7 @@ void handleBulletCreation(Game *pGame, int x, int y, ClientData *cData) {
 }
 
 //function to handle the settings menu
-void handle_settings(Game *pGame, const Uint8 *state) {
+/*void handle_settings(Game *pGame, const Uint8 *state) {
     if (state[SDL_SCANCODE_1] && pGame->slotsTaken[0] != 1) {
         pGame->playerNumber = 0; // Player 1
         pGame->slotsTaken[0] = 1;
@@ -234,7 +235,7 @@ void handle_settings(Game *pGame, const Uint8 *state) {
         pGame->slotsTaken[3] = 1;
         printf("Player number: %d\n", pGame->playerNumber+1);
     }
-}
+}*/
 
 //function to run the game with events linked to the main struct
 void handle_input(Game *pGame) {
@@ -253,22 +254,37 @@ void handle_input(Game *pGame) {
         case MENU:
             memset(&cData, 0, sizeof(cData));
             button = SDL_GetMouseState(&mouseX, &mouseY);
+            ServerData sData;
+            if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){
+                memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
+                pGame->pPacket->len = sizeof(ClientData);
+                SDLNet_UDP_Send(pGame->pSocket, -1,pGame->pPacket);
+                if(SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket)&&!pGame->joining){ 
+                    ServerData sData;
+                    printf("Data received\n");
+                    memcpy(&sData, pGame->pPacket->data, sizeof(ServerData));
+                    for(int i=0;i<MAX_MONKEYS;i++){
+                        printf("Slot %d: %d\n", i, sData.slotsTaken[i]);
+                        if(sData.slotsTaken[i]==0){
 
-            if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){    
-                    cData.command[0]=READY;
-                    cData.playerNumber = pGame->playerNumber;
-                    memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
-		            pGame->pPacket->len = sizeof(ClientData);
-                    SDLNet_UDP_Send(pGame->pSocket, -1,pGame->pPacket);
-                    pGame->state = ONGOING;
-            }
+                            pGame->playerNumber = i;
+                            pGame->slotsTaken[i] = 1;
+                            printf("Player number: %d\n", pGame->playerNumber);
+                            pGame->joining=1;
+                            break;
+                        }
+                    }
+                }
+            }   
+
+              
             else if(mouseX>270 && mouseX<550 && mouseY>400 && mouseY<443 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
             else if(mouseX>288 && mouseX<533 && mouseY>497 && mouseY<541 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = CONFIGURE;
             else if(mouseX>320&& mouseX<499 && mouseY>593 && mouseY<637 &&(button && SDL_BUTTON_LMASK)) close(pGame); // Exit the game
         
             switch (pGame->menuState) {
                 case SETTINGS:
-                    handle_settings(pGame, state);
+                    //handle_settings(pGame, state);
                     break;
                 default:
                     break;
@@ -277,7 +293,8 @@ void handle_input(Game *pGame) {
             break;
 
         case ONGOING:
-            printf("numberOfbullets: %d\n", pGame->num_bullets);
+            
+            
             memset(&cData, 0, sizeof(cData));
             if (state[SDL_SCANCODE_A]) {
                 turnLeft(pGame->pPlayers[ pGame->playerNumber]);
@@ -351,6 +368,7 @@ void handle_input(Game *pGame) {
 
 void run(Game *pGame) {
     int close_requested = 0;
+    pGame->joining = 0;
     SDL_Event event;
 
     //Initialize players
@@ -458,6 +476,7 @@ void updateWithServerData(Game *pGame){
         }
         if(sData.numberOfBullets > pGame->num_bullets && sData.whoShot != pGame->playerNumber && sData.fire == 1){
             //printf("Bullet received from server\n");
+            printf("Numberofbullets in server: %d\n", sData.numberOfBullets);
             pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, sData.bulletStartX, sData.bulletStartY, sData.whoShot);
             pGame->bullets[pGame->num_bullets]->dx = sData.bulletDx;
             pGame->bullets[pGame->num_bullets]->dy = sData.bulletDy;
