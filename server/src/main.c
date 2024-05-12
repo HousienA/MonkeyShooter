@@ -158,7 +158,7 @@ void acceptClients(Game *pGame, ClientData cData){
 void renderCharacters(Game *pGame){
     for(int i = 0; i < pGame->num_players; i++){
         Character *character = pGame->pPlayers[i];
-        renderCharacter(pGame->pPlayers[i], pGame->pRenderer);
+        renderCharacter(character, pGame->pRenderer);
     }
 }
 
@@ -193,7 +193,7 @@ void run(Game *pGame){
                     moveBullet(pGame->bullets[i]);
                         
                 }
-                
+
                 if(SDL_PollEvent(&event)) {
                     if(event.type==SDL_QUIT) {
                         close_requested = 1;
