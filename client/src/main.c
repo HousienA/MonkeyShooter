@@ -12,9 +12,9 @@
 #include <SDL2/SDL_timer.h>
 
 
-#define NR_OF_MENUTEXTURES 2
+#define NR_OF_MENUTEXTURES 3
 
-enum menuState{MAIN, SETTINGS, CONFIGURE, INGAME};
+enum menuState{MAIN, SETTINGS, CONFIGURE, WAITING, INGAME};
 typedef enum menuState MenuState; 
 
 //struct for joining players
@@ -119,7 +119,7 @@ int intializeWindow(Game *pGame) {
     
     strcpy(pGame->menuTextures->MenuTextureFiles[0], "../lib/resources/mMenu.png");
     strcpy(pGame->menuTextures->MenuTextureFiles[1], "../lib/resources/IPconfigure.png");
-
+    strcpy(pGame->menuTextures->MenuTextureFiles[2], "../lib/resources/waitingPic.png");
     pGame->pWindow = SDL_CreateWindow(
         "MonkeyShooter",
         SDL_WINDOWPOS_CENTERED,
@@ -213,28 +213,6 @@ void handleBulletCreation(Game *pGame, int x, int y, ClientData *cData) {
     }
 }
 
-//function to handle the settings menu
-/*void handle_settings(Game *pGame, const Uint8 *state) {
-    if (state[SDL_SCANCODE_1] && pGame->slotsTaken[0] != 1) {
-        pGame->playerNumber = 0; // Player 1
-        pGame->slotsTaken[0] = 1;
-        //pGame->pPlayers[0]->dest.x = 100;
-        //pGame->pPlayers[0]->dest.y = 100;
-        printf("Player number: %d\n", pGame->playerNumber+1);
-    } else if (state[SDL_SCANCODE_2] && pGame->slotsTaken[1] != 1) {
-        pGame->playerNumber = 1; // Player 2
-        pGame->slotsTaken[1] = 1;
-        printf("Player number: %d\n", pGame->playerNumber+1);
-    } else if (state[SDL_SCANCODE_3] && pGame->slotsTaken[2] != 1) {
-        pGame->playerNumber = 2; // Player 3
-        pGame->slotsTaken[2] = 1;
-        printf("Player number: %d\n", pGame->playerNumber+1);
-    } else if (state[SDL_SCANCODE_4] && pGame->slotsTaken[3] != 1) {
-        pGame->playerNumber = 3; // Player 4
-        pGame->slotsTaken[3] = 1;
-        printf("Player number: %d\n", pGame->playerNumber+1);
-    }
-}*/
 
 //function to run the game with events linked to the main struct
 void handle_input(Game *pGame) {
@@ -255,6 +233,7 @@ void handle_input(Game *pGame) {
             button = SDL_GetMouseState(&mouseX, &mouseY);
             ServerData sData;
             if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){
+                pGame->menuState = WAITING;
                 pGame->waitToFire = SDL_GetTicks();
                 memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
                 pGame->pPacket->len = sizeof(ClientData);
@@ -390,9 +369,10 @@ void run(Game *pGame) {
 
         if (pGame->state == MENU && pGame->menuState == MAIN) {
             SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[0], NULL, &pGame->menu_rect);
-        }
-        else if (pGame->state == MENU && pGame->menuState == SETTINGS) {
+        } else if (pGame->state == MENU && pGame->menuState == SETTINGS) {
             SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[1], NULL, &pGame->menu_rect);
+        } else if(pGame->state == MENU && pGame->menuState == WAITING){
+            SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[2], NULL, &pGame->menu_rect);
         }
         if (pGame->state == ONGOING) {
             //Render players
