@@ -105,6 +105,7 @@ void destroyCharacter(Character *pCharacter)
 void decreaseHealth(Character *pCharacter)
 {
     pCharacter->health -= 1;
+    printf("Health: %d\n",pCharacter->health);
     //if health is zero, character dies meaning destroy
     if (pCharacter->health <= 0)
     {
@@ -162,7 +163,7 @@ void updateCharacterFromServer(Character *pCharacter, MonkeyData *monkeys)
     pCharacter->dest.y = monkeys->y;
     pCharacter->source.x = monkeys->sx;
     pCharacter->source.y = monkeys->sy;
-    pCharacter->health = monkeys->health;
+    //pCharacter->health = monkeys->health;
     //updateBulletFromServer(pCharacter->bullet, &pMonkeyData->bData);
 }
 

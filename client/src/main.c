@@ -410,6 +410,8 @@ void run(Game *pGame) {
                 for(int i = 0; i < pGame->num_bullets; i++){
                     if(pGame->bullets[i]->whoShot != k){
                         if (checkCollisionCharacterBullet(pGame->pPlayers[k], pGame->bullets[i])){
+                            printf("Bullet collision with player %d\n", k);
+                            printf("clientNumber %d", pGame->playerNumber);
                         decreaseHealth(pGame->pPlayers[k]);
                         destroyBullet(pGame->bullets[i]);
                         // Shift all bullets after this one back by one position
@@ -420,6 +422,7 @@ void run(Game *pGame) {
                         printf("Bullet collision with player %d\n", k+1);
                         // Decrement i so we don't skip the next bullet
                         i--;
+                        break;
                         }
                     }
                 }
