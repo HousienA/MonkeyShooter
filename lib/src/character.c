@@ -179,7 +179,7 @@ void healthBar(Character *pCharacter, SDL_Renderer *renderer)
 
 bool checkCollisionCharacterBullet(Character *pCharacter, Bullet *bullet) {
     SDL_Rect characterRect = {pCharacter->dest.x, pCharacter->dest.y, CHARACTER_WIDTH, CHARACTER_HEIGHT};
-    SDL_Rect bulletRect = {bullet->x, bullet->y, BULLET_WIDTH, BULLET_HEIGHT};
+    SDL_Rect bulletRect = getBulletRect(bullet);
 
     return SDL_HasIntersection(&characterRect, &bulletRect);
 }
