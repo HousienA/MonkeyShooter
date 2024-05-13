@@ -23,11 +23,11 @@ typedef struct {
 Bullet* createBullet(SDL_Renderer *renderer, float startX, float startY, int whoShot);
 void destroyBullet(Bullet *bullet);
 void moveBullet(Bullet *bullet);
+SDL_Rect getBulletRect(Bullet *bullet);
 void drawBullet(Bullet *bullet, SDL_Renderer *renderer);
 float xBullet(Bullet *bullet);
 float DxBullet(Bullet *bullet);
 float yBullet(Bullet *bullet);
 float DyBullet(Bullet *bullet);
-//bool checkCollisionBulletCharacter(Bullet *bullet, Character *pCharacter);
 
 #endif
