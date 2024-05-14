@@ -8,10 +8,10 @@ LIBS = /opt/homebrew/lib
 CFLAGS = -g -I$(INCLUDE) -c
 LDFLAGS = -L/opt/homebrew/lib/ -lSDL2main -lSDL2 -lSDL2_image -lm -lSDL2_net -lSDL2_ttf 
 
-characterClient: main.o character.o world.o bullet.o
-	gcc -fsanitize=address -o characterClient main.o character.o world.o bullet.o $(LDFLAGS)
+characterClient: main.o character.o world.o bullet.o text.o
+	gcc -fsanitize=address -o characterClient main.o character.o world.o bullet.o text.o $(LDFLAGS)
 
-main.o: $(SRCDIR)/main.c $(INCDIR)/netdata.h $(INCDIR)/character.h $(INCDIR)/world.h 
+main.o: $(SRCDIR)/main.c $(INCDIR)/netdata.h $(INCDIR)/character.h $(INCDIR)/world.h $(INCDIR)/text.h
 	gcc -c $(INCLUDE) ./src/main.c
 
 character.o: $(COMMONSRCDIR)/character.c $(INCDIR)/netdata.h $(INCDIR)/character.h $(INCDIR)/bullet.h
@@ -22,6 +22,9 @@ world.o: $(COMMONSRCDIR)/world.c $(INCDIR)/world.h
 
 bullet.o: $(COMMONSRCDIR)/bullet.c $(INCDIR)/bullet.h $(INCDIR)/netdata.h
 	gcc -c $(INCLUDE) $(COMMONSRCDIR)/bullet.c
+
+text.o: $(COMMONSRCDIR)/text.c $(INCDIR)/text.h	
+	gcc -c $(INCLUDE) $(COMMONSRCDIR)/text.c
 
 clean:
 	rm characterClient

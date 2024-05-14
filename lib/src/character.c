@@ -107,9 +107,8 @@ void decreaseHealth(Character *pCharacter)
     pCharacter->health -= 1;
     printf("Health: %d\n",pCharacter->health);
     //if health is zero, character dies meaning destroy
-    if (pCharacter->health <= 0)
+    if (pCharacter->health == 0)
     {
-        pCharacter->health = 0;
         destroyCharacter(pCharacter);
     }
 }

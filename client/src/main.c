@@ -3,6 +3,7 @@
 #include "../../lib/include/world.h"
 #include "../../lib/include/bullet.h"
 #include "../../lib/include/netdata.h"
+#include "../../lib/include/text.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -10,6 +11,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_net.h>
 #include <SDL2/SDL_timer.h>
+#include <SDL2/SDL_ttf.h>
 
 
 #define NR_OF_MENUTEXTURES 3
@@ -37,7 +39,10 @@ struct game{
     Bullet *bullets[200];
     int num_bullets, num_players, playerNumber, slotsTaken[MAX_PLAYERS], joining; // track the number of players in the game
     Uint32 waitToFire;
-
+    
+    TTF_Font *font;
+    Text *pDeadText;
+    
     UDPsocket pSocket;
     IPaddress serverAddress;
     UDPpacket *pPacket;
@@ -104,6 +109,16 @@ int intializeWindow(Game *pGame) {
         printf("Error: %s\n", SDL_GetError());
         return FALSE;
     }
+    if (TTF_Init() == -1) {
+    printf("TTF_Init Error: %s\n", TTF_GetError());
+    return 1;
+    }
+
+    pGame->font = TTF_OpenFont("../lib/resources/arial.ttf", 60);
+    if (!pGame->font) {
+        printf("TTF_OpenFont: %s\n", TTF_GetError());
+        return 0;
+    }
     
     pGame->menuTextures = malloc(sizeof(MenuTextures));
     
@@ -164,6 +179,8 @@ int intializeWindow(Game *pGame) {
     // Set the position and size of the menu image
     pGame->menu_rect = (SDL_Rect){0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
     initializeCharacters(pGame);
+
+    pGame->pDeadText = createText(pGame->pRenderer, 255, 0, 0, pGame->font, "*SPECTATING*", 400, 400);
 
     pGame->state = MENU;
     
@@ -226,7 +243,7 @@ void handle_input(Game *pGame) {
     static int mouseClick = 0;
     
     
-
+    if(isCharacterAlive(pGame->pPlayers[pGame->playerNumber])){
     switch(pGame->state){
         case MENU:
             memset(&cData, 0, sizeof(cData));
@@ -337,12 +354,16 @@ void handle_input(Game *pGame) {
             
             
             break;
-    }
+        }
      if(state[SDL_SCANCODE_ESCAPE]){
                 pGame->state = MENU;
                 pGame->menuState = MAIN;}
-    
+    }
+    if(isCharacterAlive(pGame->pPlayers[pGame->playerNumber])==0){
+        drawText(pGame->pDeadText);
+    }
 }
+
 
 void run(Game *pGame) {
     int close_requested = 0;
@@ -379,6 +400,9 @@ void run(Game *pGame) {
 
             SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, NULL);    
             renderCharacters(pGame);
+            if(isCharacterAlive(pGame->pPlayers[pGame->playerNumber])==0){
+                drawText(pGame->pDeadText);
+            }
 
             
 
@@ -410,13 +434,7 @@ void run(Game *pGame) {
             }
             
             renderHealthBar(pGame->pPlayers, pGame->pRenderer, pGame->playerNumber);
-               // Check if character is dead
-            if (!isCharacterAlive(pGame->pPlayers[pGame->playerNumber])) {
-                // Character is dead, reset the game
-                pGame->state = MENU;
-                pGame->menuState = MAIN;
-                //pGame->pPlayers[pGame->playerNumber]->health = 4; // Reset character health
-            }
+            
         }
 
         SDL_RenderPresent(pGame->pRenderer);
