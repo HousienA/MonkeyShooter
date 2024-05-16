@@ -23,5 +23,6 @@ typedef struct {
 //make struct accesible to other files. (can be modified as a pointed for easier reach later)
 extern Wall walls[23];
 
+void convertWallsToRects(Wall *walls, SDL_Rect *rects, int count);
 
 #endif // WORLD_H

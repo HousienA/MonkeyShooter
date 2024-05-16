@@ -8,6 +8,7 @@
 
 #include "../include/game.h"
 #include "../include/character.h"
+#include "../include/world.h"
 
 #define BULLET_WIDTH 5
 #define BULLET_HEIGHT 5
@@ -17,6 +18,7 @@ typedef struct {
     float dx; 
     float dy;
     int whoShot;
+    Wall *walls[23];
     SDL_Texture *texture;
 } Bullet;
 
@@ -29,5 +31,6 @@ float xBullet(Bullet *bullet);
 float DxBullet(Bullet *bullet);
 float yBullet(Bullet *bullet);
 float DyBullet(Bullet *bullet);
+bool checkCollisionBulletWall(Bullet *bullet, Wall *walls, int num_walls);
 
 #endif

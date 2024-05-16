@@ -59,6 +59,7 @@ void handle_settings(Game *pGame, const Uint8 *state);
 void handle_input(Game *pGame);
 void initializeCharacters(Game *pGame);
 void renderCharacters(Game *pGame);
+void shiftBullets(Game *pGame, int i);
 void sendData(Game *pGame, ClientData *cData);
 void updateWithServerData(Game *pGame);
 
@@ -388,6 +389,11 @@ void run(Game *pGame) {
             for (int i = 0; i < pGame->num_bullets; i++) {
                 moveBullet(pGame->bullets[i]);
                 drawBullet(pGame->bullets[i], pGame->pRenderer);
+                if (checkCollisionBulletWall(pGame->bullets[i], walls, sizeof(walls) / sizeof(walls[0]))){
+                    destroyBullet(pGame->bullets[i]);
+                    shiftBullets(pGame, i);
+                    i--;        
+                }
             }
             for(int k=0; k<MAX_MONKEYS;k++){
                 for(int i = 0; i < pGame->num_bullets; i++){
@@ -397,22 +403,15 @@ void run(Game *pGame) {
                             printf("clientNumber %d", pGame->playerNumber);
                         decreaseHealth(pGame->pPlayers[k]);
                         destroyBullet(pGame->bullets[i]);
-                        // Shift all bullets after this one back by one position
-                        for (int j = i; j < pGame->num_bullets - 1; j++) {
-                            pGame->bullets[j] = pGame->bullets[j + 1];
-                        }
-                        pGame->num_bullets--;
+                        shiftBullets(pGame, i);
                         printf("Bullet collision with player %d\n", k+1);
                         i--;         // Decrement i so we don't skip the next bullet
                         break;
                         }
                     }
                 }
-            
-            }
-            
-            renderHealthBar(pGame->pPlayers, pGame->pRenderer, pGame->playerNumber);
-            
+            }     
+            renderHealthBar(pGame->pPlayers, pGame->pRenderer, pGame->playerNumber);    
         }
         SDL_RenderPresent(pGame->pRenderer);
     }
@@ -422,6 +421,14 @@ void run(Game *pGame) {
 void renderHealthBar(Character *pPlayers[MAX_PLAYERS], SDL_Renderer *renderer, int playerNumber) {
     healthBar(pPlayers[playerNumber], renderer);
 }
+
+void shiftBullets(Game *pGame, int i){
+    for (int j = i; j < pGame->num_bullets - 1; j++) {
+        pGame->bullets[j] = pGame->bullets[j + 1];
+    }
+    pGame->num_bullets--;
+}
+
 void sendData(Game *pGame, ClientData *cData){
     // Use the playerNumber that's selected in the settings menu
     cData->playerNumber = pGame->playerNumber;

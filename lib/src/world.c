@@ -13,29 +13,12 @@ Wall walls[23] = {
     {578, 620, 247, 292}, {724, 762, 225, 278}, {736, 780, 130, 187}, {472, 526, 176, 206}       //trees
      
 };
-/*
-//check collision with boundaries and walls 
-bool checkCollision(Character *character, Wall *walls, int num_walls) {
-    //check that its away from the borders
-    if (character->dest.x < PLAYABLE_AREA_X_MIN || character->dest.x + character->dest.w > PLAYABLE_AREA_X_MAX ||
-        character->dest.y < PLAYABLE_AREA_Y_MIN || character->dest.y + character->dest.h / 2 > PLAYABLE_AREA_Y_MAX) {
-        return TRUE;   // true if collision with boundary is detected
 
-        
+void convertWallsToRects(Wall *walls, SDL_Rect *rects, int count) {
+    for (int i = 0; i < count; ++i) {
+        rects[i].x = walls[i].x_min;
+        rects[i].y = walls[i].y_min;
+        rects[i].w = walls[i].x_max - walls[i].x_min;      //get width and height 
+        rects[i].h = walls[i].y_max - walls[i].y_min;
     }
-    
-    //check if it's away from walls
-    
-    int margin = 10; //few pixels margin to slip through sides of monkey
-    
-    for (int i = 0; i < num_walls; ++i) {
-        if (character->dest.x + character->dest.w - margin > walls[i].x_min && character->dest.x + margin < walls[i].x_max &&
-            character->dest.y + character->dest.h > walls[i].y_min && character->dest.y + character->dest.h / 2 < walls[i].y_max) {
-            return TRUE;    // true if collision with wall...
-        }
-    }
-    
-    //no collision
-    return FALSE;
 }
-*/

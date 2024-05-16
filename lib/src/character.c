@@ -46,6 +46,14 @@ Character *createCharacter(SDL_Renderer *renderer, int characterNumber) {
             pCharacter->dest.x = 699;
             pCharacter->dest.y = 90;
             break;
+      /*  case 3:
+            pCharacter->dest.x = 70;
+            pCharacter->dest.y = 708;
+            break;
+        case 4:
+            pCharacter->dest.x = 699;
+            pCharacter->dest.y = 708;
+            break;  */
     }
 
     pCharacter->tex = SDL_CreateTextureFromSurface(renderer, image);

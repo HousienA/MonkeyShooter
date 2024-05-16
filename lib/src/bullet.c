@@ -1,6 +1,7 @@
 #include "../include/character.h"
 #include "../include/bullet.h"
 #include "../include/character.h"
+#include "../include/world.h"
 #include "../include/netdata.h"
 #include <stdlib.h>
 #include <math.h>
@@ -27,7 +28,7 @@ void destroyBullet(Bullet *bullet) {
 }
 
 void moveBullet(Bullet *bullet) {
-    bullet->x += bullet->dx;
+    bullet->x += bullet->dx; 
     bullet->y += bullet->dy;
 }
 
@@ -58,3 +59,16 @@ float DyBullet(Bullet *bullet){
     return bullet->dy;
 }
 
+bool checkCollisionBulletWall(Bullet *bullet, Wall *walls, int num_walls) {
+    SDL_Rect bulletRect = getBulletRect(bullet);
+    SDL_Rect wallRects[num_walls];
+    
+    convertWallsToRects(walls, wallRects, num_walls);    //get wall rects
+
+    for (int i = 0; i < num_walls; i++) {
+        if (SDL_HasIntersection(&bulletRect, &wallRects[i])) {
+            return true;
+        }
+    }
+    return false;
+}
