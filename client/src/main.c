@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_net.h>
@@ -48,7 +49,7 @@ struct game{
     UDPpacket *pPacket;
 }; typedef struct game Game;
 
-int intializeWindow(Game *pGame); //removed renderer argument
+int intializeWindow(Game *pGame); 
 int initializeNetwork(Game *pGame);
 void run(Game *pGame);
 void close(Game *pGame);
@@ -64,8 +65,8 @@ void updateWithServerData(Game *pGame);
 int main(int argv, char** args){
     Game g={0};
     if (!intializeWindow(&g)) return TRUE; 
-    if(!initializeNetwork(&g))return TRUE;     // if initializeWindow doesn't work end the program
-    run(&g);            //or run and then close it after quitting
+    if(!initializeNetwork(&g))return TRUE;     
+    run(&g);            
     close(&g);
 
     return 0;
@@ -171,17 +172,12 @@ int intializeWindow(Game *pGame) {
             return FALSE;
         }
     }
-
-
-    // Set the position and size of the background image
+    
     pGame->background_rect = (SDL_Rect){0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-
-    // Set the position and size of the menu image
     pGame->menu_rect = (SDL_Rect){0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+    
     initializeCharacters(pGame);
-
     pGame->pDeadText = createText(pGame->pRenderer, 255, 0, 0, pGame->font, "*SPECTATING*", 400, 400);
-
     pGame->state = MENU;
     
     return TRUE;
@@ -189,18 +185,13 @@ int intializeWindow(Game *pGame) {
 
 void initializeCharacters(Game *pGame){
     pGame->num_players = 2;
-    // Initialize additional player characters
     for(int i = 0; i < pGame->num_players; i++){
-        pGame->pPlayers[i] = createCharacter(pGame->pRenderer);
+        pGame->pPlayers[i] = createCharacter(pGame->pRenderer, i+1);
         if(!pGame->pPlayers[i]){
             printf("Error creating player %d.\n", i + 1);
             close(pGame);
-            // Optionally handle the error or continue
         }
-    }
-    
-    // Set the number of players (including the main player)
-    
+    }  
 }
 
 void renderCharacters(Game *pGame){
@@ -210,7 +201,6 @@ void renderCharacters(Game *pGame){
     }
 }
 
-//function to handle the creation of bullets
 void handleBulletCreation(Game *pGame, int x, int y, ClientData *cData) {
     float bulletStartX, bulletStartY;
     setBulletStartPosition(pGame->pPlayers[pGame->playerNumber], &bulletStartX, &bulletStartY);
@@ -230,12 +220,10 @@ void handleBulletCreation(Game *pGame, int x, int y, ClientData *cData) {
     }
 }
 
-
-//function to run the game with events linked to the main struct
 void handle_input(Game *pGame) {
     ClientData cData; 
-    static Uint32 lastShootTime = 0; // Variable to store the time of the last shot
-    Uint32 currentTime = SDL_GetTicks(); // Get the current time in milliseconds
+    static Uint32 lastShootTime = 0; 
+    Uint32 currentTime = SDL_GetTicks(); 
     int close_requested = FALSE;	
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     int mouseX, mouseY, button;
@@ -272,8 +260,7 @@ void handle_input(Game *pGame) {
                     }
                 }
             }   
-
-              
+            
             else if(mouseX>270 && mouseX<550 && mouseY>400 && mouseY<443 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
             else if(mouseX>288 && mouseX<533 && mouseY>497 && mouseY<541 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = CONFIGURE;
             else if(mouseX>320&& mouseX<499 && mouseY>593 && mouseY<637 &&(button && SDL_BUTTON_LMASK)) close(pGame); // Exit the game
@@ -323,8 +310,7 @@ void handle_input(Game *pGame) {
                     cData.command[1] = UP;
                 }
             }
-            if (SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK && !mouseClick && currentTime - lastShootTime >= 500 && currentTime - pGame->waitToFire >= 2000) {
-                // Shoot a bullet with location in respect to viewport 
+            if (SDL_GetMouseState(&x, &y) & SDL_BUTTON_LMASK && !mouseClick && currentTime - lastShootTime >= 500 && currentTime - pGame->waitToFire >= 2000) { 
                 handleBulletCreation(pGame, x, y, &cData);
                 cData.command[5] = FIRE;              
                 lastShootTime = currentTime;
@@ -370,8 +356,6 @@ void run(Game *pGame) {
     pGame->joining = 0;
     SDL_Event event;
 
-    //Initialize players
-
     while (!close_requested) {
         handle_input(pGame);
         while (SDL_PollEvent(&event)) {
@@ -385,8 +369,7 @@ void run(Game *pGame) {
             printf("Error receiving data: %s\n", SDLNet_GetError());
         }
 
-        // Render the game
-        SDL_RenderClear(pGame->pRenderer);
+        SDL_RenderClear(pGame->pRenderer);         // Render the game
 
         if (pGame->state == MENU && pGame->menuState == MAIN) {
             SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[0], NULL, &pGame->menu_rect);
@@ -396,15 +379,11 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[2], NULL, &pGame->menu_rect);
         }
         if (pGame->state == ONGOING) {
-            //Render players
-
-            SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, NULL);    
+            SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, NULL);    //Render players
             renderCharacters(pGame);
             if(isCharacterAlive(pGame->pPlayers[pGame->playerNumber])==0){
                 drawText(pGame->pDeadText);
             }
-
-            
 
             for (int i = 0; i < pGame->num_bullets; i++) {
                 moveBullet(pGame->bullets[i]);
@@ -424,8 +403,7 @@ void run(Game *pGame) {
                         }
                         pGame->num_bullets--;
                         printf("Bullet collision with player %d\n", k+1);
-                        // Decrement i so we don't skip the next bullet
-                        i--;
+                        i--;         // Decrement i so we don't skip the next bullet
                         break;
                         }
                     }
@@ -436,15 +414,12 @@ void run(Game *pGame) {
             renderHealthBar(pGame->pPlayers, pGame->pRenderer, pGame->playerNumber);
             
         }
-
         SDL_RenderPresent(pGame->pRenderer);
-        //SDL_Delay(1000 / 60-15);
     }
 }
 
 
-void renderHealthBar(Character *pPlayers[MAX_PLAYERS], SDL_Renderer *renderer, int playerNumber)
-{
+void renderHealthBar(Character *pPlayers[MAX_PLAYERS], SDL_Renderer *renderer, int playerNumber) {
     healthBar(pPlayers[playerNumber], renderer);
 }
 void sendData(Game *pGame, ClientData *cData){
@@ -453,10 +428,7 @@ void sendData(Game *pGame, ClientData *cData){
 
     // Check if playerNumber is within the valid range 
     if (cData->playerNumber >= 0 && cData->playerNumber < pGame->num_players) {
-    /*    cData->monkey.x = pGame->pPlayers[cData->playerNumber]->dest.x;
-        cData->monkey.y = pGame->pPlayers[cData->playerNumber]->dest.y;         //not needed
-        cData->monkey.health = pGame->pPlayers[cData->playerNumber]->health;
-       */ 
+    //cData->monkey.health = pGame->pPlayers[cData->playerNumber]->health;  //not needed
         
         memcpy(pGame->pPacket->data, cData, sizeof(ClientData));
         SDLNet_UDP_Send(pGame->pSocket, -1, pGame->pPacket);
@@ -492,12 +464,13 @@ void close(Game *pGame){
     }
     for (int i = 0; i < pGame->num_bullets; i++) {
     destroyBullet(pGame->bullets[i]);
-}
+    }
     
     if(pGame->background) SDL_DestroyTexture(pGame->background); // Free the background texture
     for (int i = 0; i < NR_OF_MENUTEXTURES; i++){
         if(pGame->menuTextures->SDLmTex[i]) SDL_DestroyTexture(pGame->menuTextures->SDLmTex[i]);
     }
+    destroyText(pGame->pDeadText);
     if(pGame->menuTextures) {
     free(pGame->menuTextures);
     pGame->menuTextures = NULL;

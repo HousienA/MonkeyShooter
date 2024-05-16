@@ -123,7 +123,7 @@ int initiate(Game *pGame){
         return 0;
 	}
 
-    for(int i=0;i<MAX_PLAYERS;i++) pGame->pPlayers[i] = createCharacter(pGame->pRenderer);
+    for(int i=0;i<MAX_PLAYERS;i++) pGame->pPlayers[i] = createCharacter(pGame->pRenderer, i+1);
     
     pGame->num_players = MAX_MONKEYS;
     
@@ -197,7 +197,7 @@ void run(Game *pGame){
                 if(SDL_PollEvent(&event)) {
                     if(event.type==SDL_QUIT) {
                         close_requested = 1;
-                        break; // Break out of the while loop when the window is closed
+                        break; 
                     }
                 }
                 
@@ -217,7 +217,7 @@ void run(Game *pGame){
                 //printf("Waiting for players\n");
                 if(SDL_PollEvent(&event) && event.type==SDL_QUIT) {
                     close_requested = 1;
-                    break; // Break out of the while loop when the window is closed
+                    break; 
                 }
                 if(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
                     add(pGame->pPacket->address,pGame->serverAddress,&(pGame->num_players));
@@ -234,7 +234,6 @@ void run(Game *pGame){
                 }
                 break;
         }
-        //SDL_Delay(1000/60-15);//might work when you run on different processors
     }
 }
 
@@ -247,8 +246,6 @@ void add(IPaddress address, IPaddress clients[],int *pNrOfClients){
 }
 
 void executeCommand(Game *pGame,ClientData cData){
-    
-
     if(cData.command[1]==UP&& cData.command[6]!=BLOCKED) turnUp(pGame->pPlayers[cData.playerNumber]);
     if(cData.command[2]==DOWN&& cData.command[6]!=BLOCKED) turnDown(pGame->pPlayers[cData.playerNumber]);
     if(cData.command[3]==LEFT&& cData.command[6]!=BLOCKED) turnLeft(pGame->pPlayers[cData.playerNumber]);
@@ -261,7 +258,6 @@ void executeCommand(Game *pGame,ClientData cData){
             pGame->bullets[pGame->num_bullets]->dy = cData.bulletDy;
             pGame->num_bullets++;
             pGame->fire = 1;
-            //printf("bulletStartX: %d, bulletStartY: %d, bulletDx: %d, bulletDy: %d\n", cData.bulletStartX, cData.bulletStartY, cData.bulletDx, cData.bulletDy);
             return;
         }
     }
@@ -277,8 +273,6 @@ void sendGameData(Game *pGame,ClientData cData){
         sData.whoShot = cData.playerNumber;
         
     }
-
-    //if(cData.command[5]==FIRE) sData.fire = READY;
     
     if(pGame->num_bullets>0){
     sData.bulletDx = DxBullet(pGame->bullets[pGame->num_bullets-1]);
@@ -316,7 +310,6 @@ void close(Game *pGame){
 	if(pGame->pSocket) SDLNet_UDP_Close(pGame->pSocket);
 
     destroyText(pGame->pWaitingText);
-
     TTF_CloseFont(pGame->font);
     TTF_Quit();
     SDLNet_Quit();    

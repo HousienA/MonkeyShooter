@@ -20,14 +20,13 @@ struct character{
     int currentFrame;
     Uint32 animationTimer;
     int direction; // 0 - down, 1 - left, 2 - right, 3 - up
+    bool isHit;
+    Uint32 hitTimer;
 };
 
 
-Character *createCharacter(SDL_Renderer *renderer)
-{
+Character *createCharacter(SDL_Renderer *renderer, int characterNumber) {
     Character *pCharacter = malloc(sizeof(Character));
-    pCharacter->dest.x = 120;
-    pCharacter->dest.y = 145;
     pCharacter->dest.w = CHARACTER_WIDTH;
     pCharacter->dest.h = CHARACTER_HEIGHT;
 
@@ -36,6 +35,17 @@ Character *createCharacter(SDL_Renderer *renderer)
     if (!image) {
         printf("Error loading background image: %s\n", IMG_GetError());
         return FALSE;
+    }
+
+    switch(characterNumber){
+        case 1:
+            pCharacter->dest.x = 70;
+            pCharacter->dest.y = 90;
+            break;
+        case 2:
+            pCharacter->dest.x = 699;
+            pCharacter->dest.y = 90;
+            break;
     }
 
     pCharacter->tex = SDL_CreateTextureFromSurface(renderer, image);
@@ -50,15 +60,15 @@ Character *createCharacter(SDL_Renderer *renderer)
     pCharacter->currentFrame = 0;
     pCharacter->animationTimer = 0;
     pCharacter->direction = 0;
+    pCharacter->isHit = FALSE;
+    pCharacter->hitTimer = 0;
 
     return pCharacter;
 }
 
 void updateCharacterAnimation(Character *pCharacter, Uint32 deltaTime)
 {
-    // Update animation timer
     pCharacter->animationTimer += deltaTime;
-
     // Change sprite frame every 400 milliseconds
     if (pCharacter->animationTimer > 400)
     {
@@ -66,9 +76,8 @@ void updateCharacterAnimation(Character *pCharacter, Uint32 deltaTime)
         pCharacter->animationTimer = 0;
     }
 
-    // Update sprite row based on movement direction
-    switch (pCharacter->direction)
-    {
+    //sprite row based on movement direction
+    switch (pCharacter->direction) {
         case 1: // Left
             pCharacter->source.y = SPRITE_HEIGHT * 2;
             pCharacter->source.x = pCharacter->currentFrame * SPRITE_WIDTH;
@@ -88,66 +97,72 @@ void updateCharacterAnimation(Character *pCharacter, Uint32 deltaTime)
     }
 }
 
-
-void renderCharacter(Character *pCharacter, SDL_Renderer *renderer)
-{
+void renderCharacter(Character *pCharacter, SDL_Renderer *renderer) {
     if(!pCharacter->health) return;
+
+    Uint8 r, g, b;
+    Uint32 currentTime = SDL_GetTicks();
+    SDL_GetTextureColorMod(pCharacter->tex, &r, &g, &b);
+    
+    if(pCharacter->isHit && currentTime - pCharacter->hitTimer < 200){
+        SDL_SetTextureColorMod(pCharacter->tex, 255, 0, 0);
+    } else {
+        pCharacter->isHit = FALSE;
+        SDL_SetTextureColorMod(pCharacter->tex, 255, 255, 255);
+    }
+    
     SDL_Rect dest = {pCharacter->dest.x, pCharacter->dest.y, pCharacter->dest.w, pCharacter->dest.h};
     SDL_RenderCopy(renderer, pCharacter->tex, &pCharacter->source, &pCharacter->dest);
 }
 
-void destroyCharacter(Character *pCharacter)
-{
+void destroyCharacter(Character *pCharacter) {
     SDL_DestroyTexture(pCharacter->tex);
     free(pCharacter);
 }
 
-void decreaseHealth(Character *pCharacter)
-{
+void decreaseHealth(Character *pCharacter) {
     pCharacter->health -= 1;
     printf("Health: %d\n",pCharacter->health);
-    //if health is zero, character dies meaning destroy
-    if (pCharacter->health == 0)
-    {
+    pCharacter->isHit = TRUE;
+    pCharacter->hitTimer = SDL_GetTicks();
+    if(pCharacter->isHit){
+        SDL_SetTextureColorMod(pCharacter->tex, 255, 0, 0);
+    }
+    
+    if (pCharacter->health == 0) {
         destroyCharacter(pCharacter);
     }
 }
 
-int isCharacterAlive(Character *pCharacter)
-{
+int isCharacterAlive(Character *pCharacter) {
     return pCharacter->health > 0;
 }
 
-void turnLeft(Character *pCharacter)
-{
+void turnLeft(Character *pCharacter) {
     pCharacter->dest.x -= MOVE_SPEED;
     pCharacter->direction = 1;
-    updateCharacterAnimation(pCharacter, 100); // Update animation with a fixed delta time
+    updateCharacterAnimation(pCharacter, 100); 
 }
 
-void turnRight(Character *pCharacter)
-{
+void turnRight(Character *pCharacter) {
     pCharacter->dest.x += MOVE_SPEED;
     pCharacter->direction = 2;
     updateCharacterAnimation(pCharacter, 100);
 }
 
-void turnUp(Character *pCharacter)
-{
+void turnUp(Character *pCharacter) {
     pCharacter->dest.y -= MOVE_SPEED;
     pCharacter->direction = 3;
     updateCharacterAnimation(pCharacter, 100);
 }
 
-void turnDown(Character *pCharacter)
-{
+void turnDown(Character *pCharacter) {
     pCharacter->dest.y += MOVE_SPEED;
     pCharacter->direction = 0;
     updateCharacterAnimation(pCharacter, 100);
 }
 
-void characterSendData(Character *pCharacter, MonkeyData *pMonkeyData)
-{
+void characterSendData(Character *pCharacter, MonkeyData *pMonkeyData) {
     pMonkeyData->x = pCharacter->dest.x;
     pMonkeyData->y = pCharacter->dest.y;
     pMonkeyData->sx = pCharacter->source.x;
@@ -156,24 +171,22 @@ void characterSendData(Character *pCharacter, MonkeyData *pMonkeyData)
     //SendBulletData(pCharacter->bullet, &pMonkeyData->bData);
 }
 
-void updateCharacterFromServer(Character *pCharacter, MonkeyData *monkeys)
-{
+void updateCharacterFromServer(Character *pCharacter, MonkeyData *monkeys) {
     pCharacter->dest.x = monkeys->x;
     pCharacter->dest.y = monkeys->y;
     pCharacter->source.x = monkeys->sx;
     pCharacter->source.y = monkeys->sy;
-    //pCharacter->health = monkeys->health;
+    pCharacter->health = monkeys->health;
     //updateBulletFromServer(pCharacter->bullet, &pMonkeyData->bData);
 }
 
-void healthBar(Character *pCharacter, SDL_Renderer *renderer)
-{
-    SDL_Rect healthBar = {20, 20, 100, 20}; // Health bar position and size
-    SDL_Rect remainingHealth = {20, 20, pCharacter->health * 25, 20}; // Health bar remaining size
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red color
-    SDL_RenderFillRect(renderer, &healthBar); // Draw the background of health bar
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Green color
-    SDL_RenderFillRect(renderer, &remainingHealth); // Draw the remaining healt
+void healthBar(Character *pCharacter, SDL_Renderer *renderer) {
+    SDL_Rect healthBar = {20, 20, 100, 20}; 
+    SDL_Rect remainingHealth = {20, 20, pCharacter->health * 25, 20}; 
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); 
+    SDL_RenderFillRect(renderer, &healthBar); 
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); 
+    SDL_RenderFillRect(renderer, &remainingHealth); 
 }
 
 bool checkCollisionCharacterBullet(Character *pCharacter, Bullet *bullet) {
@@ -189,13 +202,11 @@ void setBulletStartPosition(Character *pCharacter, float *startX, float *startY)
 }
 
 bool checkCollision(Character *character, Wall *walls, int num_walls) {
-    //check that its away from the borders
     if (character->dest.x < PLAYABLE_AREA_X_MIN || character->dest.x + character->dest.w > PLAYABLE_AREA_X_MAX ||
         character->dest.y < PLAYABLE_AREA_Y_MIN || character->dest.y + character->dest.h / 2 > PLAYABLE_AREA_Y_MAX) {
         return TRUE;   // true if collision with boundary is detected        
     }
-    
-    int margin = 10; //few pixels margin to slip through sides of monkey
+    int margin = 10; 
     for (int i = 0; i < num_walls; ++i) {
         if (character->dest.x + character->dest.w - margin > walls[i].x_min && character->dest.x + margin < walls[i].x_max &&
             character->dest.y + character->dest.h > walls[i].y_min && character->dest.y + character->dest.h / 2 < walls[i].y_max) {

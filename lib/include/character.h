@@ -14,7 +14,7 @@
 
 typedef struct character Character;
 
-Character *createCharacter(SDL_Renderer *renderer);
+Character *createCharacter(SDL_Renderer *renderer, int characterNumber);
 void decreaseHealth(Character *pCharacter);
 int isCharacterAlive(Character *pCharacter);
 void turnLeft(Character *pCharacter);
