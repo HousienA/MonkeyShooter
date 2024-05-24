@@ -175,7 +175,7 @@ void characterSendData(Character *pCharacter, MonkeyData *pMonkeyData) {
     pMonkeyData->y = pCharacter->dest.y;
     pMonkeyData->sx = pCharacter->source.x;
     pMonkeyData->sy = pCharacter->source.y;
-    pMonkeyData->health = pCharacter->health;
+    //pMonkeyData->health = pCharacter->health;
     //SendBulletData(pCharacter->bullet, &pMonkeyData->bData);
 }
 
@@ -184,7 +184,7 @@ void updateCharacterFromServer(Character *pCharacter, MonkeyData *monkeys) {
     pCharacter->dest.y = monkeys->y;
     pCharacter->source.x = monkeys->sx;
     pCharacter->source.y = monkeys->sy;
-    pCharacter->health = monkeys->health;
+    //pCharacter->health = monkeys->health;
     //updateBulletFromServer(pCharacter->bullet, &pMonkeyData->bData);
 }
 
@@ -223,4 +223,14 @@ bool checkCollision(Character *character, Wall *walls, int num_walls) {
     }
 
     return FALSE;
+}
+
+int howManyPlayersAlive(Character *players[], int num_players) {
+    int count = 0;
+    for (int i = 0; i < num_players; ++i) {
+        if (isCharacterAlive(players[i])) {
+            count++;
+        }
+    }
+    return count;
 }

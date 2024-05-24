@@ -17,7 +17,7 @@
 
 #define NR_OF_MENUTEXTURES 3
 
-enum menuState{MAIN, SETTINGS, CONFIGURE, WAITING, INGAME};
+enum menuState{MAIN, SETTINGS, CONFIGURE, WAITING, INGAME, END};
 typedef enum menuState MenuState; 
 
 //struct for joining players
@@ -38,11 +38,12 @@ struct game{
     GameState state;
     MenuState menuState;
     Bullet *bullets[200];
-    int num_bullets, num_players, playerNumber, slotsTaken[MAX_PLAYERS], joining; // track the number of players in the game
+    int num_bullets, num_players, playerNumber, slotsTaken[MAX_PLAYERS], joining;
+    char ip[16]; // track the number of players in the game
     Uint32 waitToFire;
     
     TTF_Font *font;
-    Text *pDeadText;
+    Text *pDeadText, *IPaddressText;
     
     UDPsocket pSocket;
     IPaddress serverAddress;
@@ -50,7 +51,7 @@ struct game{
 }; typedef struct game Game;
 
 int intializeWindow(Game *pGame); 
-int initializeNetwork(Game *pGame);
+int initializeNetwork(Game *pGame, char *ip);
 void run(Game *pGame);
 void close(Game *pGame);
 void renderHealthBar(Character *pPlayers[MAX_PLAYERS], SDL_Renderer *renderer, int playerNumber);
@@ -62,18 +63,20 @@ void renderCharacters(Game *pGame);
 void shiftBullets(Game *pGame, int i);
 void sendData(Game *pGame, ClientData *cData);
 void updateWithServerData(Game *pGame);
+void handleIpInput(Game *pGame, const Uint8 *state);
+void establishConnection(Game *pGame);
 
 int main(int argv, char** args){
     Game g={0};
     if (!intializeWindow(&g)) return TRUE; 
-    if(!initializeNetwork(&g))return TRUE;     
+    //if(!initializeNetwork(&g))return TRUE;     
     run(&g);            
     close(&g);
 
     return 0;
 }
 
-int initializeNetwork(Game *pGame){
+int initializeNetwork(Game *pGame, char *ip){
     if (SDLNet_Init())
 	{
 		printf("SDLNet_Init: %s\n", SDLNet_GetError());
@@ -85,7 +88,7 @@ int initializeNetwork(Game *pGame){
 		return 0;
 	}
 	// Resolve the server address
-    if (SDLNet_ResolveHost(&(pGame->serverAddress), "127.0.0.1", 2000) == -1) {
+    if (SDLNet_ResolveHost(&(pGame->serverAddress), ip, 2000) == -1) {
         printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
         SDLNet_UDP_Close(pGame->pSocket); // Close the socket
         SDLNet_Quit(); // Cleanup SDLNet
@@ -107,6 +110,7 @@ int initializeNetwork(Game *pGame){
 
 //start the program and call needed from main struct
 int intializeWindow(Game *pGame) {
+    pGame->ip[0]='\0';
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         printf("Error: %s\n", SDL_GetError());
         return FALSE;
@@ -224,13 +228,14 @@ void handleBulletCreation(Game *pGame, int x, int y, ClientData *cData) {
 void handle_input(Game *pGame) {
     ClientData cData; 
     static Uint32 lastShootTime = 0; 
+    static Uint32 lastTypeTime = 0;
     Uint32 currentTime = SDL_GetTicks(); 
     int close_requested = FALSE;	
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     int mouseX, mouseY, button;
     int x,y;
     static int mouseClick = 0;
-    
+    bool doneTyping = false;
     
     if(isCharacterAlive(pGame->pPlayers[pGame->playerNumber])){
     switch(pGame->state){
@@ -239,6 +244,13 @@ void handle_input(Game *pGame) {
             button = SDL_GetMouseState(&mouseX, &mouseY);
             ServerData sData;
             if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){
+                
+                
+                pGame->menuState = SETTINGS;
+                
+                
+                
+                /*if(doneTyping){
                 pGame->menuState = WAITING;
                 pGame->waitToFire = SDL_GetTicks();
                 memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
@@ -260,7 +272,8 @@ void handle_input(Game *pGame) {
                         }
                     }
                 }
-            }   
+                }*/
+            }  
             
             else if(mouseX>270 && mouseX<550 && mouseY>400 && mouseY<443 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
             else if(mouseX>288 && mouseX<533 && mouseY>497 && mouseY<541 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = CONFIGURE;
@@ -268,8 +281,21 @@ void handle_input(Game *pGame) {
         
             switch (pGame->menuState) {
                 case SETTINGS:
-                    //handle_settings(pGame, state);
-                    break;
+                   
+                    if (pGame->ip[0] != '\0'){
+                        pGame->IPaddressText = createText(pGame->pRenderer, 0, 150, 50, pGame->font, pGame->ip, 400, 410);
+                    }
+                    if (state[SDL_SCANCODE_RETURN]){
+                        printf("IP: %s\n", pGame->ip);
+                        doneTyping = true;
+                        initializeNetwork(pGame, pGame->ip);
+                        establishConnection(pGame);
+                    }
+                    if(lastTypeTime + 150 < currentTime && !doneTyping){
+                        lastTypeTime = currentTime;
+                        handleIpInput(pGame,state);
+                    }
+                
                 default:
                     break;
             }
@@ -376,6 +402,7 @@ void run(Game *pGame) {
             SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[0], NULL, &pGame->menu_rect);
         } else if (pGame->state == MENU && pGame->menuState == SETTINGS) {
             SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[1], NULL, &pGame->menu_rect);
+            if(pGame->IPaddressText!=NULL)drawText(pGame->IPaddressText);
         } else if(pGame->state == MENU && pGame->menuState == WAITING){
             SDL_RenderCopy(pGame->pRenderer, pGame->menuTextures->SDLmTex[2], NULL, &pGame->menu_rect);
         }
@@ -403,6 +430,11 @@ void run(Game *pGame) {
                             printf("clientNumber %d", pGame->playerNumber);
                         decreaseHealth(pGame->pPlayers[k]);
                         destroyBullet(pGame->bullets[i]);
+                        pGame->num_players = howManyPlayersAlive(pGame->pPlayers, pGame->num_players);
+                        if(pGame->num_players == 1 && isCharacterAlive(pGame->pPlayers[pGame->playerNumber])){
+                            pGame->pDeadText = createText(pGame->pRenderer, 255, 0, 0, pGame->font, "YOU WON", 400, 400);
+                            drawText(pGame->pDeadText);
+                        }
                         shiftBullets(pGame, i);
                         printf("Bullet collision with player %d\n", k+1);
                         i--;         // Decrement i so we don't skip the next bullet
@@ -486,4 +518,72 @@ void close(Game *pGame){
     if(pGame->pRenderer) SDL_DestroyRenderer(pGame->pRenderer);
     if(pGame->pWindow) SDL_DestroyWindow(pGame->pWindow);
     SDL_Quit();
+}
+
+void handleIpInput(Game *pGame, const Uint8 *state){
+if(state[SDL_SCANCODE_BACKSPACE]){
+    pGame->ip[strlen(pGame->ip) - 1] = '\0';
+}
+if(state[SDL_SCANCODE_PERIOD]){
+    strncat(pGame->ip, ".", 1);
+}
+else if(state[SDL_SCANCODE_0]){
+    strncat(pGame->ip, "0", 1);
+}
+else if(state[SDL_SCANCODE_1]){
+    strncat(pGame->ip, "1", 1);
+}
+else if(state[SDL_SCANCODE_2]){
+    strncat(pGame->ip, "2", 1);
+}
+else if(state[SDL_SCANCODE_3]){
+    strncat(pGame->ip, "3", 1);
+}
+else if(state[SDL_SCANCODE_4]){
+    strncat(pGame->ip, "4", 1);
+}
+else if(state[SDL_SCANCODE_5]){
+    strncat(pGame->ip, "5", 1);
+}
+else if(state[SDL_SCANCODE_6]){
+    strncat(pGame->ip, "6", 1);
+}
+else if(state[SDL_SCANCODE_7]){
+    strncat(pGame->ip, "7", 1);
+}
+else if(state[SDL_SCANCODE_8]){
+    strncat(pGame->ip, "8", 1);
+}
+else if(state[SDL_SCANCODE_9]){
+    strncat(pGame->ip, "9", 1);
+}
+return;
+}
+
+void establishConnection(Game *pGame){
+    pGame->menuState = WAITING;
+    ClientData cData;
+    pGame->waitToFire = SDL_GetTicks();
+    memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
+    pGame->pPacket->len = sizeof(ClientData);
+    SDLNet_UDP_Send(pGame->pSocket, -1,pGame->pPacket);
+
+    SDL_Delay(1000);
+    if(SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket)&&!pGame->joining){ 
+        ServerData sData;
+        printf("Data received\n");
+        memcpy(&sData, pGame->pPacket->data, sizeof(ServerData));
+        
+        for(int i=0;i<MAX_MONKEYS;i++){
+            printf("Slot %d: %d\n", i, sData.slotsTaken[i]);
+            
+            if(sData.slotsTaken[i]==0){
+                pGame->playerNumber = i;
+                pGame->slotsTaken[i] = 1;
+                printf("Player number: %d\n", pGame->playerNumber);
+                pGame->joining=1;
+                break;
+            }
+        }
+    }
 }
