@@ -38,8 +38,8 @@ struct game{
     GameState state;
     MenuState menuState;
     Bullet *bullets[200];
-    int num_bullets, num_players, playerNumber, slotsTaken[MAX_PLAYERS], joining;
-    char ip[16]; // track the number of players in the game
+    int num_bullets, num_players, playerNumber, slotsTaken[MAX_PLAYERS], joining, youWon;
+    char ip[16]; 
     Uint32 waitToFire;
     
     TTF_Font *font;
@@ -184,6 +184,7 @@ int intializeWindow(Game *pGame) {
     initializeCharacters(pGame);
     pGame->pDeadText = createText(pGame->pRenderer, 255, 0, 0, pGame->font, "*SPECTATING*", 400, 400);
     pGame->state = MENU;
+    pGame->youWon = 0;
     
     return TRUE;
 }
@@ -422,6 +423,7 @@ void run(Game *pGame) {
                     i--;        
                 }
             }
+            if(pGame->youWon) drawText(pGame->pDeadText);   
             for(int k=0; k<MAX_MONKEYS;k++){
                 for(int i = 0; i < pGame->num_bullets; i++){
                     if(pGame->bullets[i]->whoShot != k){
@@ -433,7 +435,7 @@ void run(Game *pGame) {
                         pGame->num_players = howManyPlayersAlive(pGame->pPlayers, pGame->num_players);
                         if(pGame->num_players == 1 && isCharacterAlive(pGame->pPlayers[pGame->playerNumber])){
                             pGame->pDeadText = createText(pGame->pRenderer, 255, 0, 0, pGame->font, "YOU WON", 400, 400);
-                            drawText(pGame->pDeadText);
+                            pGame->youWon = 1;
                         }
                         shiftBullets(pGame, i);
                         printf("Bullet collision with player %d\n", k+1);
