@@ -189,7 +189,7 @@ int intializeWindow(Game *pGame) {
 }
 
 void initializeCharacters(Game *pGame){
-    pGame->num_players = 2;
+    pGame->num_players = MAX_MONKEYS;
     for(int i = 0; i < pGame->num_players; i++){
         pGame->pPlayers[i] = createCharacter(pGame->pRenderer, i+1);
         if(!pGame->pPlayers[i]){
@@ -525,37 +525,37 @@ if(state[SDL_SCANCODE_BACKSPACE]){
     pGame->ip[strlen(pGame->ip) - 1] = '\0';
 }
 if(state[SDL_SCANCODE_PERIOD]){
-    strncat(pGame->ip, ".", 1);
+    strncat(pGame->ip, ".", 2);
 }
 else if(state[SDL_SCANCODE_0]){
-    strncat(pGame->ip, "0", 1);
+    strncat(pGame->ip, "0", 2);
 }
 else if(state[SDL_SCANCODE_1]){
-    strncat(pGame->ip, "1", 1);
+    strncat(pGame->ip, "1", 2);
 }
 else if(state[SDL_SCANCODE_2]){
-    strncat(pGame->ip, "2", 1);
+    strncat(pGame->ip, "2", 2);
 }
 else if(state[SDL_SCANCODE_3]){
-    strncat(pGame->ip, "3", 1);
+    strncat(pGame->ip, "3", 2);
 }
 else if(state[SDL_SCANCODE_4]){
-    strncat(pGame->ip, "4", 1);
+    strncat(pGame->ip, "4", 2);
 }
 else if(state[SDL_SCANCODE_5]){
-    strncat(pGame->ip, "5", 1);
+    strncat(pGame->ip, "5", 2);
 }
 else if(state[SDL_SCANCODE_6]){
-    strncat(pGame->ip, "6", 1);
+    strncat(pGame->ip, "6", 2);
 }
 else if(state[SDL_SCANCODE_7]){
-    strncat(pGame->ip, "7", 1);
+    strncat(pGame->ip, "7", 2);
 }
 else if(state[SDL_SCANCODE_8]){
-    strncat(pGame->ip, "8", 1);
+    strncat(pGame->ip, "8", 2);
 }
 else if(state[SDL_SCANCODE_9]){
-    strncat(pGame->ip, "9", 1);
+    strncat(pGame->ip, "9", 2);
 }
 return;
 }

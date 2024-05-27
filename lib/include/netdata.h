@@ -2,7 +2,7 @@
 #define NETDATA_H
 
 
-#define MAX_MONKEYS 2
+#define MAX_MONKEYS 4
 #define MAX_BULLETS 100
 
 

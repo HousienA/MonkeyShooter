@@ -31,4 +31,5 @@ bool checkCollisionCharacterBullet(Character *pCharacter, Bullet *bullet);
 void setBulletStartPosition(Character *pCharacter, float *startX, float *startY);
 bool checkCollision(Character *character, Wall *walls, int num_walls);
 int howManyPlayersAlive(Character *players[], int num_players);
+int playerHealth(Character *character);
 #endif
