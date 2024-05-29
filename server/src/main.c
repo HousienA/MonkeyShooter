@@ -34,7 +34,7 @@ struct game{
     SDL_Rect menu_rect;
     GameState state;
     MenuState menuState;
-    Bullet *bullets[1000];
+    Bullet *bullets[MAX_BULLETS];
     int num_bullets, num_players, slotsTaken[4], fire; // track the number of players in the game
     TTF_Font *font;
     Text *pWaitingText, *pJoinedText;
@@ -144,21 +144,19 @@ int initiate(Game *pGame){
 
 void acceptClients(Game *pGame, ClientData cData){
     while(pGame->num_players < MAX_PLAYERS) {
-        // Receive UDP packets
-        if(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1) {
-            // Add the player
+        if(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1) {     //Receive packets
+            //Add player
             add(pGame->pPacket->address, pGame->serverAddress, &(pGame->num_players));
             sendGameData(pGame, cData);
-        } else {
-            // No incoming packets, break out of the loop
-            break;
+        } else {         
+            break;      //No incoming packets, break out of the loop
         }
     }
 }
 void renderCharacters(Game *pGame){
     for(int i = 0; i < pGame->num_players; i++){
         Character *character = pGame->pPlayers[i];
-        renderCharacter(character, pGame->pRenderer);
+        renderCharacter(character, pGame->pRenderer);       //loop through all players and render them
     }
 }
 
@@ -173,12 +171,14 @@ void run(Game *pGame){
         switch (pGame->state)
         {
             case ONGOING:
-                //printf("Game is ongoing\n");
                 sendGameData(pGame,cData);
                 SDL_RenderCopy(pGame->pRenderer, pGame->background, NULL, NULL);
                 renderCharacters(pGame);
                 if(SDLNet_UDP_Recv(pGame->pSocket,pGame->pPacket)==1){
                     
+                    
+                    if(cData.command[5]==FIRE) printf("fire=on");
+                
                     if(cData.command[5]==FIRE) printf("fire=on");
                     memcpy(&cData, pGame->pPacket->data, sizeof(ClientData));
                     executeCommand(pGame,cData);
@@ -191,6 +191,9 @@ void run(Game *pGame){
                     if(pGame->bullets[i] == NULL) continue;
                     drawBullet(pGame->bullets[i], pGame->pRenderer);
                     moveBullet(pGame->bullets[i]);
+                    moveBullet(pGame->bullets[i]);
+                        
+                    moveBullet(pGame->bullets[i]);        
                         
                 }
 
@@ -202,19 +205,13 @@ void run(Game *pGame){
                 }
                 
                 SDL_RenderPresent(pGame->pRenderer);
-                
                 break;
-            /*case :
-                
-                sendGameData(pGame);
-                if(pGame->num_players==MAX_PLAYERS) pGame->num_players = 0;*/
             case MENU:
                 acceptClients(pGame, cData);
                 drawText(pGame->pWaitingText);
                 SDL_RenderPresent(pGame->pRenderer);
                 sendGameData(pGame, cData);
                 
-                //printf("Waiting for players\n");
                 if(SDL_PollEvent(&event) && event.type==SDL_QUIT) {
                     close_requested = 1;
                     break; 
@@ -251,7 +248,7 @@ void executeCommand(Game *pGame,ClientData cData){
     if(cData.command[3]==LEFT&& cData.command[6]!=BLOCKED) turnLeft(pGame->pPlayers[cData.playerNumber]);
     if(cData.command[4]==RIGHT&& cData.command[6]!=BLOCKED) turnRight(pGame->pPlayers[cData.playerNumber]);
     if(cData.command[5]==FIRE){
-        printf("%d,cData.playerNumber in fire func\n", cData.playerNumber);
+        printf("%d player in fired\n", cData.playerNumber);
         pGame->bullets[pGame->num_bullets] = createBullet(pGame->pRenderer, cData.bulletStartX, cData.bulletStartY, cData.playerNumber);
         if (pGame->bullets[pGame->num_bullets]) {
             pGame->bullets[pGame->num_bullets]->dx = cData.bulletDx;
@@ -261,7 +258,6 @@ void executeCommand(Game *pGame,ClientData cData){
             return;
         }
     }
-    
 }
 
 void sendGameData(Game *pGame,ClientData cData){

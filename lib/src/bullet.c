@@ -66,7 +66,7 @@ bool checkCollisionBulletWall(Bullet *bullet, Wall *walls, int num_walls) {
     convertWallsToRects(walls, wallRects, num_walls);    //get wall rects
 
     for (int i = 0; i < num_walls; i++) {
-        if (SDL_HasIntersection(&bulletRect, &wallRects[i])) {
+        if (SDL_HasIntersection(&bulletRect, &wallRects[i])) {      //check for collision
             return true;
         }
     }

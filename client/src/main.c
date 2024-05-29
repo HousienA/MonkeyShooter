@@ -37,7 +37,7 @@ struct game{
     SDL_Rect menu_rect;
     GameState state;
     MenuState menuState;
-    Bullet *bullets[200];
+    Bullet *bullets[MAX_BULLETS];
     int num_bullets, num_players, playerNumber, slotsTaken[MAX_PLAYERS], joining, youWon;
     char ip[16]; 
     Uint32 waitToFire;
@@ -68,8 +68,7 @@ void establishConnection(Game *pGame);
 
 int main(int argv, char** args){
     Game g={0};
-    if (!intializeWindow(&g)) return TRUE; 
-    //if(!initializeNetwork(&g))return TRUE;     
+    if (!intializeWindow(&g)) return TRUE;      
     run(&g);            
     close(&g);
 
@@ -87,7 +86,7 @@ int initializeNetwork(Game *pGame, char *ip){
 		printf("SDLNet_UDP_Open: %s\n", SDLNet_GetError());
 		return 0;
 	}
-	// Resolve the server address
+	// Connect the server address
     if (SDLNet_ResolveHost(&(pGame->serverAddress), ip, 2000) == -1) {
         printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
         SDLNet_UDP_Close(pGame->pSocket); // Close the socket
@@ -110,7 +109,6 @@ int initializeNetwork(Game *pGame, char *ip){
 
 //start the program and call needed from main struct
 int intializeWindow(Game *pGame) {
-    pGame->ip[0]='\0';
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         printf("Error: %s\n", SDL_GetError());
         return FALSE;
@@ -185,6 +183,7 @@ int intializeWindow(Game *pGame) {
     pGame->pDeadText = createText(pGame->pRenderer, 255, 0, 0, pGame->font, "*SPECTATING*", 400, 400);
     pGame->state = MENU;
     pGame->youWon = 0;
+    pGame->ip[0]='\0';
     
     return TRUE;
 }
@@ -244,36 +243,8 @@ void handle_input(Game *pGame) {
             memset(&cData, 0, sizeof(cData));
             button = SDL_GetMouseState(&mouseX, &mouseY);
             ServerData sData;
-            if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){
-                
-                
+            if(mouseX>270 && mouseX<550 && mouseY>303 && mouseY<345 &&(button && SDL_BUTTON_LMASK)){             
                 pGame->menuState = SETTINGS;
-                
-                
-                
-                /*if(doneTyping){
-                pGame->menuState = WAITING;
-                pGame->waitToFire = SDL_GetTicks();
-                memcpy(pGame->pPacket->data, &cData, sizeof(ClientData));
-                pGame->pPacket->len = sizeof(ClientData);
-                SDLNet_UDP_Send(pGame->pSocket, -1,pGame->pPacket);
-                if(SDLNet_UDP_Recv(pGame->pSocket, pGame->pPacket)&&!pGame->joining){ 
-                    ServerData sData;
-                    printf("Data received\n");
-                    memcpy(&sData, pGame->pPacket->data, sizeof(ServerData));
-                    for(int i=0;i<MAX_MONKEYS;i++){
-                        printf("Slot %d: %d\n", i, sData.slotsTaken[i]);
-                        if(sData.slotsTaken[i]==0){
-
-                            pGame->playerNumber = i;
-                            pGame->slotsTaken[i] = 1;
-                            printf("Player number: %d\n", pGame->playerNumber);
-                            pGame->joining=1;
-                            break;
-                        }
-                    }
-                }
-                }*/
             }  
             
             else if(mouseX>270 && mouseX<550 && mouseY>400 && mouseY<443 &&(button && SDL_BUTTON_LMASK)) pGame->menuState = SETTINGS;
@@ -439,7 +410,7 @@ void run(Game *pGame) {
                         }
                         shiftBullets(pGame, i);
                         printf("Bullet collision with player %d\n", k+1);
-                        i--;         // Decrement i so we don't skip the next bullet
+                        i--;         
                         break;
                         }
                     }
@@ -469,8 +440,9 @@ void sendData(Game *pGame, ClientData *cData){
 
     // Check if playerNumber is within the valid range 
     if (cData->playerNumber >= 0 && cData->playerNumber < pGame->num_players) {
-    //cData->monkey.health = pGame->pPlayers[cData->playerNumber]->health;  //not needed
-        
+        for(int i = 0; i < pGame->num_players; i++){
+            cData->monkey.health = playerHealth(pGame->pPlayers[i]);
+        }   
         memcpy(pGame->pPacket->data, cData, sizeof(ClientData));
         SDLNet_UDP_Send(pGame->pSocket, -1, pGame->pPacket);
     }

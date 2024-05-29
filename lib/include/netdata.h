@@ -3,7 +3,7 @@
 
 
 #define MAX_MONKEYS 4
-#define MAX_BULLETS 100
+#define MAX_BULLETS 200
 
 
 

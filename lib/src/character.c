@@ -20,7 +20,7 @@ struct character{
     int currentFrame;
     Uint32 animationTimer;
     int direction; // 0 - down, 1 - left, 2 - right, 3 - up
-    bool isHit;
+    bool isHit, isDead;
     Uint32 hitTimer;
 };
 
@@ -38,6 +38,7 @@ Character *createCharacter(SDL_Renderer *renderer, int characterNumber) {
     }
 
     switch(characterNumber){
+        //start position of each Player
         case 1:
             pCharacter->dest.x = 70;
             pCharacter->dest.y = 90;
@@ -69,6 +70,7 @@ Character *createCharacter(SDL_Renderer *renderer, int characterNumber) {
     pCharacter->animationTimer = 0;
     pCharacter->direction = 0;
     pCharacter->isHit = FALSE;
+    pCharacter->isDead = FALSE;
     pCharacter->hitTimer = 0;
 
     return pCharacter;
@@ -106,14 +108,14 @@ void updateCharacterAnimation(Character *pCharacter, Uint32 deltaTime)
 }
 
 void renderCharacter(Character *pCharacter, SDL_Renderer *renderer) {
-    if(!pCharacter->health) return;
+    if(pCharacter->isDead == TRUE) return;
 
     Uint8 r, g, b;
     Uint32 currentTime = SDL_GetTicks();
     SDL_GetTextureColorMod(pCharacter->tex, &r, &g, &b);
     
     if(pCharacter->isHit && currentTime - pCharacter->hitTimer < 200){
-        SDL_SetTextureColorMod(pCharacter->tex, 255, 0, 0);
+        SDL_SetTextureColorMod(pCharacter->tex, 255, 0, 0);         //monkey turns red when hit
     } else {
         pCharacter->isHit = FALSE;
         SDL_SetTextureColorMod(pCharacter->tex, 255, 255, 255);
@@ -138,12 +140,13 @@ void decreaseHealth(Character *pCharacter) {
     }
     
     if (pCharacter->health == 0) {
-        destroyCharacter(pCharacter);
+        pCharacter->isDead = TRUE; 
+        // destroyCharacter(pCharacter); // Comment out this line
     }
 }
 
 int isCharacterAlive(Character *pCharacter) {
-    return pCharacter->health > 0;
+    return !pCharacter->isDead;
 }
 
 void turnLeft(Character *pCharacter) {
@@ -171,21 +174,21 @@ void turnDown(Character *pCharacter) {
 }
 
 void characterSendData(Character *pCharacter, MonkeyData *pMonkeyData) {
+    // Send character data to client
     pMonkeyData->x = pCharacter->dest.x;
     pMonkeyData->y = pCharacter->dest.y;
     pMonkeyData->sx = pCharacter->source.x;
     pMonkeyData->sy = pCharacter->source.y;
-    pMonkeyData->health = pCharacter->health;
-    //SendBulletData(pCharacter->bullet, &pMonkeyData->bData);
+    //pMonkeyData->health = pCharacter->health;
 }
 
 void updateCharacterFromServer(Character *pCharacter, MonkeyData *monkeys) {
+    // Update character data from server
     pCharacter->dest.x = monkeys->x;
     pCharacter->dest.y = monkeys->y;
     pCharacter->source.x = monkeys->sx;
     pCharacter->source.y = monkeys->sy;
-    pCharacter->health = monkeys->health;
-    //updateBulletFromServer(pCharacter->bullet, &pMonkeyData->bData);
+    //pCharacter->health = monkeys->health;
 }
 
 void healthBar(Character *pCharacter, SDL_Renderer *renderer) {
@@ -214,7 +217,7 @@ bool checkCollision(Character *character, Wall *walls, int num_walls) {
         character->dest.y < PLAYABLE_AREA_Y_MIN || character->dest.y + character->dest.h / 2 > PLAYABLE_AREA_Y_MAX) {
         return TRUE;   // true if collision with boundary is detected        
     }
-    int margin = 10; 
+    int margin = 10;        // margin to allow certain parts of the character to cross with trees
     for (int i = 0; i < num_walls; ++i) {
         if (character->dest.x + character->dest.w - margin > walls[i].x_min && character->dest.x + margin < walls[i].x_max &&
             character->dest.y + character->dest.h > walls[i].y_min && character->dest.y + character->dest.h / 2 < walls[i].y_max) {
@@ -237,4 +240,8 @@ int howManyPlayersAlive(Character *players[], int num_players) {
 
 int playerHealth(Character *character) {
     return character->health;
+}
+
+void updateHealthClienttoServer(Character *pCharacter, MonkeyData *pMonkeyData){
+    pMonkeyData->health = pCharacter->health;
 }

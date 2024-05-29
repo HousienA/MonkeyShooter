@@ -15,6 +15,7 @@ Wall walls[23] = {
 };
 
 void convertWallsToRects(Wall *walls, SDL_Rect *rects, int count) {
+    //walls rects to be used for bullet collision
     for (int i = 0; i < count; ++i) {
         rects[i].x = walls[i].x_min;
         rects[i].y = walls[i].y_min;
